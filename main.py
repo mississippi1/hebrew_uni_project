@@ -152,7 +152,7 @@ def main():
     # Run the simulation
     grids = simulate_charge_diffusion(*get_inputs())
     # Animate the simulation
-    animate_heat_diffusion(grids, interval=100)  # Adjust interval to slow down transitions
+    animate_heat_diffusion(grids, interval=20)  # Adjust interval to slow down transitions
 
 
 def get_inputs() -> Tuple:
