@@ -10,8 +10,8 @@ GRID_WIDTH = 200
 STEP_SIZE = 0.025
 REQUIRED_PRECISION = 0.0001
 MAX_ITERATIONS = 10_000
-TOP_PLATE_POTENTIAL = 0.5
-BOTTOM_PLATE_POTENTIAL = -0.5
+TOP_PLATE_POTENTIAL = -0.5
+BOTTOM_PLATE_POTENTIAL = 0.5
 PLATE_OFFSET = 20
 X_MAX_OF_DISK = 400
 
@@ -94,33 +94,31 @@ class PotentialPlotter:
         plt.colorbar(label='Potential (V)')
         plt.show()
 
-    def plot_positive_y_values(self):
-        fig, ax = plt.subplots(figsize=(12, 8))
-        im = ax.imshow(
-            self.potential_grid.grid[:, self.potential_grid.width:].T,
-            extent=[0, self.potential_grid.length, 0, self.potential_grid.width],
-            cmap='hot',
-            norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
-        )
-        ax.set_title("Potential Distribution for Positive y Values")
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
-        ax.invert_yaxis()  # Ensure y-axis is inverted correctly
-        plt.colorbar(im, ax=ax, orientation='vertical', label='Potential (V)')
-        plt.show()
-
     def plot_negative_y_values(self):
         fig, ax = plt.subplots(figsize=(12, 8))
         im = ax.imshow(
-            self.potential_grid.grid[:, :self.potential_grid.width].T,
-            extent=[0, self.potential_grid.length, -self.potential_grid.width, 0],
+            self.potential_grid.grid[:, self.potential_grid.width:].T,
+            extent=[0, self.potential_grid.length, 0, self.potential_grid.width - 300],
             cmap='hot',
             norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
         )
         ax.set_title("Potential Distribution for Negative y Values")
         ax.set_xlabel("x")
         ax.set_ylabel("y")
-        ax.invert_yaxis()  # Ensure y-axis is inverted correctly
+        plt.colorbar(im, ax=ax, orientation='vertical', label='Potential (V)')
+        plt.show()
+
+    def plot_positive_y_values(self):
+        fig, ax = plt.subplots(figsize=(12, 8))
+        im = ax.imshow(
+            self.potential_grid.grid[:, :self.potential_grid.width].T,
+            extent=[0, self.potential_grid.length, 0, self.potential_grid.width],
+            cmap='hot',
+            norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
+        )
+        ax.set_title("Potential Distribution for Positive y Values")
+        ax.set_xlabel("r")
+        ax.set_ylabel("z")
         plt.colorbar(im, ax=ax, orientation='vertical', label='Potential (V)')
         plt.show()
 
