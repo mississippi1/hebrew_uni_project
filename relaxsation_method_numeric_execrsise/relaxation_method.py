@@ -5,7 +5,7 @@ from numba import jit
 
 LENGTH_OF_GRID = 500
 WIDTH_OF_GRID = 200
-REQUIRED_PRECISION = 0.4
+REQUIRED_PRECISION = 0.04
 BASE_DISK_HEIGHT = 20
 LOWER_Y_OF_DISK = BASE_DISK_HEIGHT
 UPPER_Y_OF_DISK = BASE_DISK_HEIGHT + 1
@@ -45,6 +45,10 @@ def is_allowed_area(x, y) -> bool:
     return is_allowed
 
 
+def is_outside(column, row):
+    return row < 0 or row >= WIDTH_OF_GRID or column < 0 or column >= LENGTH_OF_GRID
+
+
 def get_potential_from_neighbor(row, column, grid):
     #         Todo: should split for each dosk
     if not is_allowed_area(y=column, x=row):
@@ -54,17 +58,13 @@ def get_potential_from_neighbor(row, column, grid):
     else:
         return grid[row, column]
 
-
-def is_outside(column, row):
-    return row < 0 or row >= WIDTH_OF_GRID or column < 0 or column >= LENGTH_OF_GRID
-
-
+@jit
 def calculate_potential(row, column, step_size, grid):
     calculated_potential = 1 / 4 * (
             get_potential_from_neighbor(row + 1, column, grid) * (1 + step_size / (2 * row))
             + get_potential_from_neighbor(row - 1, column, grid) * (1 - step_size / (2 * row))
             + get_potential_from_neighbor(row, column + 1, grid)
-            + get_potential_from_neighbor(row, column + 1, grid))
+            + get_potential_from_neighbor(row, column - 1, grid))
     return calculated_potential
 
 
