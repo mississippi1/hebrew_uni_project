@@ -10,8 +10,8 @@ GRID_WIDTH = 0.05  # meters
 STEP_SIZE = 0.00025  # meters
 REQUIRED_PRECISION = 0.0001
 MAX_ITERATIONS = 10_000
-TOP_PLATE_POTENTIAL = 0.5
-BOTTOM_PLATE_POTENTIAL = -0.5
+TOP_PLATE_POTENTIAL = -0.5
+BOTTOM_PLATE_POTENTIAL = 0.5
 PLATE_OFFSET = 0.0025  # meters
 X_MAX_OF_DISK = 0.1  # meters
 
@@ -89,6 +89,42 @@ class RelaxationSolver:
         )
 
 
+def save_animation_as_different_file_format(ani):
+    try:
+        ani.save('potential_animation.gif', writer='pillow')
+        print("Animation successfully saved as potential_animation.gif")
+    except Exception as e:
+        print(f"Failed to save GIF animation: {e}")
+
+        # Try saving as MP4 using ffmpeg
+    try:
+        ani.save('potential_animation.mp4', writer='ffmpeg')
+        print("Animation successfully saved as potential_animation.mp4")
+    except Exception as e:
+        print(f"Failed to save MP4 animation: {e}")
+
+        # Try saving as MOV using ffmpeg
+    try:
+        ani.save('potential_animation.mov', writer='ffmpeg')
+        print("Animation successfully saved as potential_animation.mov")
+    except Exception as e:
+        print(f"Failed to save MOV animation: {e}")
+
+        # Try saving as AVI using ffmpeg
+    try:
+        ani.save('potential_animation.avi', writer='ffmpeg')
+        print("Animation successfully saved as potential_animation.avi")
+    except Exception as e:
+        print(f"Failed to save AVI animation: {e}")
+
+        # Try saving as HTML5 video using HTML writer
+    try:
+        ani.save('potential_animation.html', writer='html')
+        print("Animation successfully saved as potential_animation.html")
+    except Exception as e:
+        print(f"Failed to save HTML5 animation: {e}")
+
+
 class PotentialPlotter:
     def __init__(self, potential_grid, grids):
         self.potential_grid = potential_grid
@@ -97,8 +133,8 @@ class PotentialPlotter:
     def plot_potential(self):
         plt.figure(figsize=(12, 8))
         plt.title("Potential Distribution Around the Board Capacitor")
-        plt.xlabel("x (meters)")
-        plt.ylabel("y (meters)")
+        plt.xlabel("r (meters)")
+        plt.ylabel("z (meters)")
         plt.gca().invert_yaxis()
         plt.imshow(
             self.potential_grid.grid.T,
@@ -107,6 +143,7 @@ class PotentialPlotter:
             norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
         )
         plt.colorbar(label='Potential (V)')
+        plt.savefig("Potential Distribution Around the Board Capacitor.png")
         plt.show()
 
     def plot_positive_y_values(self):
@@ -186,8 +223,7 @@ class PotentialPlotter:
 
         ani = animation.FuncAnimation(fig, update, frames=len(self.grids), blit=True, interval=50)
 
-        # Save as Video
-        ani.save('potential_animation.mp4', writer='ffmpeg')
+        save_animation_as_different_file_format(ani)
 
         plt.show()
 
@@ -206,7 +242,6 @@ def main():
     plotter.plot_negative_y_values()
     plotter.plot_vertical_line_at_x0()  # Added line plot for x = 0
     plotter.animate_potential()
-    print(potential_grid.grid[0::10])
 
 
 if __name__ == "__main__":
