@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from numba import jit
 import matplotlib.animation as animation
+import pandas as pd
 
 # Parameters
 GRID_LENGTH = 0.125  # meters
@@ -14,6 +15,7 @@ TOP_PLATE_POTENTIAL = -0.5
 BOTTOM_PLATE_POTENTIAL = 0.5
 PLATE_OFFSET = 0.0025  # meters
 X_MAX_OF_DISK = 0.1  # meters
+EPSILON_ZERO = 8.854 * 10 ** -12
 
 
 class PotentialGrid:
@@ -27,7 +29,6 @@ class PotentialGrid:
         self.grid = self.initialize_grid()
 
     def initialize_grid(self):
-        # Convert dimensions to grid indices
         length_idx = int(self.length / self.step_size)
         width_idx = int(self.width / self.step_size)
         grid = np.zeros((length_idx + 1, 2 * width_idx + 1))
@@ -35,8 +36,8 @@ class PotentialGrid:
         top_plate_y = width_idx + int(self.plate_offset / self.step_size)
         bottom_plate_y = width_idx - int(self.plate_offset / self.step_size)
 
-        grid[:, top_plate_y] = self.top_potential
-        grid[:, bottom_plate_y] = self.bottom_potential
+        grid[:int(X_MAX_OF_DISK / STEP_SIZE), top_plate_y] = self.top_potential
+        grid[:int(X_MAX_OF_DISK / STEP_SIZE), bottom_plate_y] = self.bottom_potential
         return grid
 
 
@@ -96,28 +97,24 @@ def save_animation_as_different_file_format(ani):
     except Exception as e:
         print(f"Failed to save GIF animation: {e}")
 
-        # Try saving as MP4 using ffmpeg
     try:
         ani.save('potential_animation.mp4', writer='ffmpeg')
         print("Animation successfully saved as potential_animation.mp4")
     except Exception as e:
         print(f"Failed to save MP4 animation: {e}")
 
-        # Try saving as MOV using ffmpeg
     try:
         ani.save('potential_animation.mov', writer='ffmpeg')
         print("Animation successfully saved as potential_animation.mov")
     except Exception as e:
         print(f"Failed to save MOV animation: {e}")
 
-        # Try saving as AVI using ffmpeg
     try:
         ani.save('potential_animation.avi', writer='ffmpeg')
         print("Animation successfully saved as potential_animation.avi")
     except Exception as e:
         print(f"Failed to save AVI animation: {e}")
 
-        # Try saving as HTML5 video using HTML writer
     try:
         ani.save('potential_animation.html', writer='html')
         print("Animation successfully saved as potential_animation.html")
@@ -157,11 +154,10 @@ class PotentialPlotter:
         ax.set_title("Potential Distribution for Positive y Values")
         ax.set_xlabel("r (meters)")
         ax.set_ylabel("z (meters)")
-        ax.invert_yaxis()  # Ensure y-axis is inverted correctly
+        ax.invert_yaxis()
         plt.colorbar(im, ax=ax, orientation='vertical', label='Potential (V)')
         plt.savefig("Potential Distribution for Positive y Values.png")
         plt.show()
-
 
     def plot_negative_y_values(self):
         fig, ax = plt.subplots(figsize=(12, 8))
@@ -174,21 +170,20 @@ class PotentialPlotter:
         ax.set_title("Potential Distribution for Negative y Values")
         ax.set_xlabel("r (meters)")
         ax.set_ylabel("z (meters)")
-        ax.invert_yaxis()  # Ensure y-axis is inverted correctly
+        ax.invert_yaxis()
         plt.colorbar(im, ax=ax, orientation='vertical', label='Potential (V)')
         plt.savefig("Potential Distribution for Negative y Values.png")
         plt.show()
 
     def plot_vertical_line_at_x0(self):
-        # Convert the grid indices to physical dimensions
         length_idx = int(self.potential_grid.length / self.potential_grid.step_size)
         width_idx = int(self.potential_grid.width / self.potential_grid.step_size)
         plate_offset_idx = int(self.potential_grid.plate_offset / self.potential_grid.step_size)
 
-        # Extract the potential values along the vertical line at x = 0
-        potential_values = self.potential_grid.grid[1, :]
-        import pandas as pd
-        pd.DataFrame(potential_values).to_excel("potential_data.xlsx")
+        # Corrected index to extract the potential values along the vertical line at x = 0
+        potential_values = self.potential_grid.grid[:, width_idx]
+        y_values = np.linspace(-self.potential_grid.width, self.potential_grid.width, len(potential_values))
+        self.get_electric_field()
         # Create corresponding y-values
         y_values = np.linspace(-self.potential_grid.width, self.potential_grid.width, len(potential_values))
 
@@ -201,6 +196,23 @@ class PotentialPlotter:
         plt.axhline(0, color='black', linewidth=0.5)
         plt.legend()
         plt.show()
+
+
+    def get_electric_field(self):
+        potential_values_for_electric_field = pd.DataFrame(self.potential_grid.grid[:, :])
+        electric_field = (
+                                 (
+                                         potential_values_for_electric_field.iloc[:,
+                                         int(X_MAX_OF_DISK / self.potential_grid.step_size)]
+                                         - potential_values_for_electric_field.iloc[:,
+                                           int(X_MAX_OF_DISK / self.potential_grid.step_size) - 2]
+                                 ) / (2 * STEP_SIZE)
+                         ) * EPSILON_ZERO
+        integral = 0
+        for row_number in range(0, int(X_MAX_OF_DISK / self.potential_grid.step_size)):
+            row_value = electric_field[row_number]
+            integral += (row_number * STEP_SIZE) * 2 * np.pi * row_value
+        return f"step_size: " + str(self.potential_grid.step_size) + "integral: " + str(integral)
 
     def animate_potential(self):
         fig, ax = plt.subplots(figsize=(12, 8))
@@ -223,7 +235,7 @@ class PotentialPlotter:
 
         ani = animation.FuncAnimation(fig, update, frames=len(self.grids), blit=True, interval=50)
 
-        save_animation_as_different_file_format(ani)
+        # save_animation_as_different_file_format(ani)
 
         plt.show()
 
@@ -233,16 +245,26 @@ def main():
         GRID_LENGTH, GRID_WIDTH, STEP_SIZE, TOP_PLATE_POTENTIAL, BOTTOM_PLATE_POTENTIAL, PLATE_OFFSET
     )
     solver = RelaxationSolver(potential_grid, REQUIRED_PRECISION, MAX_ITERATIONS)
-    print("Starting relaxation method...")
     grids = solver.relax_potential()
-    print("Relaxation method completed.")
     plotter = PotentialPlotter(potential_grid, grids)
+
     plotter.plot_potential()
     plotter.plot_positive_y_values()
     plotter.plot_negative_y_values()
-    plotter.plot_vertical_line_at_x0()  # Added line plot for x = 0
+    plotter.plot_vertical_line_at_x0()
     plotter.animate_potential()
 
 
+def calculate_integral_for_different_h():
+    for h in [STEP_SIZE / 4, STEP_SIZE / 2, STEP_SIZE, STEP_SIZE * 2, STEP_SIZE * 4, STEP_SIZE * 8]:
+        potential_grid = PotentialGrid(
+            GRID_LENGTH, GRID_WIDTH, h, TOP_PLATE_POTENTIAL, BOTTOM_PLATE_POTENTIAL, PLATE_OFFSET
+        )
+        solver = RelaxationSolver(potential_grid, REQUIRED_PRECISION, MAX_ITERATIONS)
+        grids = solver.relax_potential()
+        plotter = PotentialPlotter(potential_grid, grids)
+        print(plotter.get_electric_field())
+
+
 if __name__ == "__main__":
-    main()
+    calculate_integral_for_different_h()
