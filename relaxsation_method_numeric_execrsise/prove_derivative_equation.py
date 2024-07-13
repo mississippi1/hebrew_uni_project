@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import jit
+from numba import jit
 
 
 # Define the function and its true derivative

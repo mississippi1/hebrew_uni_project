@@ -1,6 +1,7 @@
 import sys
 import time
 from typing import Tuple
+from numba import jit
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,7 +15,7 @@ HIGH_BOUNDARY_RANDOM_DATA_VALUES = 250
 SHOULD_PRINT = False
 
 
-def initialize_grid(size: int, max_change: float, min_charge: float, should_add_random_noise=True,) -> np.ndarray:
+def initialize_grid(size: int, max_change: float, min_charge: float, should_add_random_noise=True, ) -> np.ndarray:
     """
     Initialize the grid with a central hot spot.
         :param min_charge: The initial charge of the rest of the grid.
@@ -26,7 +27,8 @@ def initialize_grid(size: int, max_change: float, min_charge: float, should_add_
         np.ndarray: Initialized grid.
 
     """
-    grid = (np.random.randint(low=LOW_BOUNDARY_RANDOM_DATA_VALUES, high=HIGH_BOUNDARY_RANDOM_DATA_VALUES, size=(size, size)) if should_add_random_noise else np.ones((size, size)) * min_charge)
+    grid = (np.random.randint(low=LOW_BOUNDARY_RANDOM_DATA_VALUES, high=HIGH_BOUNDARY_RANDOM_DATA_VALUES,
+                              size=(size, size)) if should_add_random_noise else np.ones((size, size)) * min_charge)
     grid[LOWER_LEFT_OF_RESTRICTED_AREA:UPPER_RIGHT_OF_RESTRICTED_AREA, LOWER_LEFT_OF_RESTRICTED_AREA:
                                                                        UPPER_RIGHT_OF_RESTRICTED_AREA] = max_change
 
@@ -57,7 +59,7 @@ def apply_quarter_grid_calculation_to_rest_of_the_grid(grid) -> np.ndarray:
                 custom_print(row, size - col - 1)
                 new_grid[size - row - 1, size - col - 1] = current_charge
                 custom_print(size - row - 1, size - col - 1)
-                custom_print("*"*10)
+                custom_print("*" * 10)
     return new_grid
 
 
@@ -75,7 +77,7 @@ def update_grid(grid: np.ndarray) -> tuple[np.ndarray, float]:
     size = grid.shape[0]
     min_ratio_diff_in_charge = -np.inf
     for row in range(0, size // 2 + 1):
-        for col in range(0, size // 2+1):
+        for col in range(0, size // 2 + 1):
             if not check_if_point_is_in_restricted_area(row, col):
                 new_charge = calculate_charge_change(col, grid, row)
                 min_ratio_diff_in_charge = max(save_divide(new_charge - float(new_grid[row, col]),
@@ -90,6 +92,7 @@ def save_divide(divisor: float, divider: float) -> float:
     return divisor / divider if divider != 0 else np.inf
 
 
+@jit
 def calculate_charge_change(col: int, grid: np.ndarray, row: int) -> float:
     """
     Calculate the new charge for a specific cell.
