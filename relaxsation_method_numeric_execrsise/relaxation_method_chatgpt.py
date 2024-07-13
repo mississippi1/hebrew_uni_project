@@ -5,15 +5,16 @@ from numba import jit
 import matplotlib.animation as animation
 
 # Parameters
-GRID_LENGTH = 500
-GRID_WIDTH = 200
-STEP_SIZE = 0.025
+GRID_LENGTH = 0.125  # meters
+GRID_WIDTH = 0.05  # meters
+STEP_SIZE = 0.00025  # meters
 REQUIRED_PRECISION = 0.0001
 MAX_ITERATIONS = 10_000
-TOP_PLATE_POTENTIAL = -0.5
-BOTTOM_PLATE_POTENTIAL = 0.5
-PLATE_OFFSET = 20
-X_MAX_OF_DISK = 400
+TOP_PLATE_POTENTIAL = 0.5
+BOTTOM_PLATE_POTENTIAL = -0.5
+PLATE_OFFSET = 0.0025  # meters
+X_MAX_OF_DISK = 0.1  # meters
+
 
 class PotentialGrid:
     def __init__(self, length, width, step_size, top_potential, bottom_potential, plate_offset):
@@ -26,20 +27,29 @@ class PotentialGrid:
         self.grid = self.initialize_grid()
 
     def initialize_grid(self):
-        grid = np.zeros((self.length + 1, 2 * self.width + 1))
-        grid[:X_MAX_OF_DISK, self.width + self.plate_offset] = self.top_potential
-        grid[:X_MAX_OF_DISK, self.width - self.plate_offset] = self.bottom_potential
+        # Convert dimensions to grid indices
+        length_idx = int(self.length / self.step_size)
+        width_idx = int(self.width / self.step_size)
+        grid = np.zeros((length_idx + 1, 2 * width_idx + 1))
+
+        top_plate_y = width_idx + int(self.plate_offset / self.step_size)
+        bottom_plate_y = width_idx - int(self.plate_offset / self.step_size)
+
+        grid[:, top_plate_y] = self.top_potential
+        grid[:, bottom_plate_y] = self.bottom_potential
         return grid
 
+
 @jit(nopython=True)
-def numba_relax_potential(grid, length, width, step_size, precision, max_iterations, plate_offset):
+def numba_relax_potential(grid, length_idx, width_idx, step_size, precision, max_iterations, plate_offset_idx):
     grids = []
     for iteration in range(max_iterations):
         max_diff = 0
         new_grid = grid.copy()
-        for x in range(1, length):
-            for y in range(1, 2 * width):
-                if (y == width + plate_offset or y == width - plate_offset) and x < 400:
+        for x in range(1, length_idx):
+            for y in range(1, 2 * width_idx):
+                if (y == width_idx + plate_offset_idx or y == width_idx - plate_offset_idx) and x < int(
+                        X_MAX_OF_DISK / step_size):
                     continue
                 new_grid[x, y] = 0.25 * (
                         grid[x + 1, y] * (1 + step_size / (2 * (x if x != 0 else 1))) +
@@ -57,6 +67,7 @@ def numba_relax_potential(grid, length, width, step_size, precision, max_iterati
         print("Did not converge within the maximum number of iterations")
     return grids
 
+
 class RelaxationSolver:
     def __init__(self, potential_grid, precision, max_iterations):
         self.potential_grid = potential_grid
@@ -64,15 +75,19 @@ class RelaxationSolver:
         self.max_iterations = max_iterations
 
     def relax_potential(self):
+        length_idx = int(self.potential_grid.length / self.potential_grid.step_size)
+        width_idx = int(self.potential_grid.width / self.potential_grid.step_size)
+        plate_offset_idx = int(self.potential_grid.plate_offset / self.potential_grid.step_size)
         return numba_relax_potential(
             self.potential_grid.grid,
-            self.potential_grid.length,
-            self.potential_grid.width,
+            length_idx,
+            width_idx,
             self.potential_grid.step_size,
             self.precision,
             self.max_iterations,
-            self.potential_grid.plate_offset
+            plate_offset_idx
         )
+
 
 class PotentialPlotter:
     def __init__(self, potential_grid, grids):
@@ -82,8 +97,8 @@ class PotentialPlotter:
     def plot_potential(self):
         plt.figure(figsize=(12, 8))
         plt.title("Potential Distribution Around the Board Capacitor")
-        plt.xlabel("x")
-        plt.ylabel("y")
+        plt.xlabel("x (meters)")
+        plt.ylabel("y (meters)")
         plt.gca().invert_yaxis()
         plt.imshow(
             self.potential_grid.grid.T,
@@ -94,45 +109,57 @@ class PotentialPlotter:
         plt.colorbar(label='Potential (V)')
         plt.show()
 
-    def plot_negative_y_values(self):
-        fig, ax = plt.subplots(figsize=(12, 8))
-        im = ax.imshow(
-            self.potential_grid.grid[:, self.potential_grid.width:].T,
-            extent=[0, self.potential_grid.length, 0, self.potential_grid.width - 300],
-            cmap='hot',
-            norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
-        )
-        ax.set_title("Potential Distribution for Negative y Values")
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
-        plt.colorbar(im, ax=ax, orientation='vertical', label='Potential (V)')
-        plt.show()
-
     def plot_positive_y_values(self):
         fig, ax = plt.subplots(figsize=(12, 8))
         im = ax.imshow(
-            self.potential_grid.grid[:, :self.potential_grid.width].T,
+            self.potential_grid.grid[:, int(self.potential_grid.width / self.potential_grid.step_size):].T,
             extent=[0, self.potential_grid.length, 0, self.potential_grid.width],
             cmap='hot',
             norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
         )
         ax.set_title("Potential Distribution for Positive y Values")
-        ax.set_xlabel("r")
-        ax.set_ylabel("z")
+        ax.set_xlabel("r (meters)")
+        ax.set_ylabel("z (meters)")
+        ax.invert_yaxis()  # Ensure y-axis is inverted correctly
         plt.colorbar(im, ax=ax, orientation='vertical', label='Potential (V)')
+        plt.savefig("Potential Distribution for Positive y Values.png")
+        plt.show()
+
+
+    def plot_negative_y_values(self):
+        fig, ax = plt.subplots(figsize=(12, 8))
+        im = ax.imshow(
+            self.potential_grid.grid[:, :int(self.potential_grid.width / self.potential_grid.step_size)].T,
+            extent=[0, self.potential_grid.length, -self.potential_grid.width, 0],
+            cmap='hot',
+            norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
+        )
+        ax.set_title("Potential Distribution for Negative y Values")
+        ax.set_xlabel("r (meters)")
+        ax.set_ylabel("z (meters)")
+        ax.invert_yaxis()  # Ensure y-axis is inverted correctly
+        plt.colorbar(im, ax=ax, orientation='vertical', label='Potential (V)')
+        plt.savefig("Potential Distribution for Negative y Values.png")
         plt.show()
 
     def plot_vertical_line_at_x0(self):
-        # Compute the y-values to match the grid's vertical axis
-        y_values = np.linspace(-self.potential_grid.length, self.potential_grid.length, self.potential_grid.grid.shape[1])
+        # Convert the grid indices to physical dimensions
+        length_idx = int(self.potential_grid.length / self.potential_grid.step_size)
+        width_idx = int(self.potential_grid.width / self.potential_grid.step_size)
+        plate_offset_idx = int(self.potential_grid.plate_offset / self.potential_grid.step_size)
 
-        # Extract potential values from the grid at x = 0
+        # Extract the potential values along the vertical line at x = 0
         potential_values = self.potential_grid.grid[1, :]
+        import pandas as pd
+        pd.DataFrame(potential_values).to_excel("potential_data.xlsx")
+        # Create corresponding y-values
+        y_values = np.linspace(-self.potential_grid.width, self.potential_grid.width, len(potential_values))
+
         plt.figure(figsize=(12, 8))
         plt.plot(potential_values, y_values, label="Potential at x = 0", color='b')
         plt.title("Potential Distribution at x = 0")
         plt.xlabel("Potential (V)")
-        plt.ylabel("y")
+        plt.ylabel("y (meters)")
         plt.grid(True)
         plt.axhline(0, color='black', linewidth=0.5)
         plt.legend()
@@ -141,8 +168,8 @@ class PotentialPlotter:
     def animate_potential(self):
         fig, ax = plt.subplots(figsize=(12, 8))
         ax.set_title("Potential Distribution Around the Board Capacitor")
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
+        ax.set_xlabel("x (meters)")
+        ax.set_ylabel("y (meters)")
         ax.invert_yaxis()
 
         im = ax.imshow(
@@ -158,7 +185,12 @@ class PotentialPlotter:
             return [im]
 
         ani = animation.FuncAnimation(fig, update, frames=len(self.grids), blit=True, interval=50)
+
+        # Save as Video
+        ani.save('potential_animation.mp4', writer='ffmpeg')
+
         plt.show()
+
 
 def main():
     potential_grid = PotentialGrid(
