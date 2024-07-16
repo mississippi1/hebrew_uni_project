@@ -184,7 +184,7 @@ class PotentialPlotter:
 
         # Plot the potential values at x = 0
         plt.figure(figsize=(12, 8))
-        plt.plot(y_values, potential_values[::-1], label="Potential at x = 0", color='b', marker=".")
+        plt.plot(y_values, potential_values[::-1], label="Potential at r = 0", color='b', marker=".")
 
         # Generate the trend line
         electric_field_trend_line = (
@@ -201,9 +201,22 @@ class PotentialPlotter:
         # Plot the filtered trend line
         plt.plot(filtered_y_values, filtered_trend_line, label="Trend Line for Electric Field - Slope of 200")
 
-        plt.title("Potential Distribution at x = 0")
+        plt.title("Potential Distribution at r = 0")
         plt.ylabel("Potential (V)")
-        plt.xlabel("y (meters)")
+        plt.xlabel("z (meters)")
+        plt.grid(True)
+        plt.axhline(0, color='black', linewidth=0.5)
+        plt.legend()
+        plt.show()
+
+    def plot_charge_density_line_at_x0(self):
+        charge_density = (self.calculate_electric_field() * EPSILON_ZERO)[:400]
+        y_values = np.linspace(0, 400, len(charge_density))
+        plt.figure(figsize=(12, 8))
+        plt.plot(y_values, charge_density, label="Charge Density at Disk", color='b', marker=".")
+        plt.title("Charge Density at Disk")
+        plt.ylabel("Charge Density (σ)")
+        plt.xlabel("r (meters)")
         plt.grid(True)
         plt.axhline(0, color='black', linewidth=0.5)
         plt.legend()
@@ -279,7 +292,9 @@ def calculate_integral_for_different_h():
         solver = RelaxationSolver(potential_grid, REQUIRED_PRECISION, MAX_ITERATIONS)
         grids = solver.relax_potential()
         plotter = PotentialPlotter(potential_grid, grids)
-        print(plotter.plot_potential_line_at_x0())
+        plotter.plot_potential_line_at_x0()
+        plotter.plot_charge_density_line_at_x0()
+
 
 
 if __name__ == "__main__":
