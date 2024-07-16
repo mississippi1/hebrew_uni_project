@@ -11,8 +11,8 @@ GRID_WIDTH = 0.05  # meters
 STEP_SIZE = 0.00025  # meters
 REQUIRED_PRECISION = 0.0001
 MAX_ITERATIONS = 999999999
-TOP_PLATE_POTENTIAL = 0.5
-BOTTOM_PLATE_POTENTIAL = -0.5
+TOP_PLATE_POTENTIAL = -0.5
+BOTTOM_PLATE_POTENTIAL = 0.5
 PLATE_OFFSET = 0.0025  # meters
 X_MAX_OF_DISK = 0.1  # meters
 EPSILON_ZERO = 8.854 * 10 ** -12
@@ -181,12 +181,26 @@ class PotentialPlotter:
     def plot_potential_line_at_x0(self):
         potential_values = self.potential_grid.grid[1, :]
         y_values = np.linspace(-self.potential_grid.width, self.potential_grid.width, len(potential_values))
+
+        # Plot the potential values at x = 0
         plt.figure(figsize=(12, 8))
         plt.plot(y_values, potential_values[::-1], label="Potential at x = 0", color='b', marker=".")
-        electric_field_trend_line = (list(0 for _ in range(0, 190))
-                          + list(200 * i * self.potential_grid.step_size for i in range(-10, 11))
-                          + list(0 for _ in range(0, 190)))
-        plt.plot(y_values, electric_field_trend_line, label="Trend Line for Electric Field")
+
+        # Generate the trend line
+        electric_field_trend_line = (
+                list(0 for _ in range(0, 190)) +
+                list(200 * i * self.potential_grid.step_size for i in range(-10, 11)) +
+                list(0 for _ in range(0, 190))
+        )
+
+        # Filter out zero values from the trend line
+        non_zero_indices = [i for i, value in enumerate(electric_field_trend_line) if value != 0]
+        filtered_y_values = [y_values[i] for i in non_zero_indices]
+        filtered_trend_line = [electric_field_trend_line[i] for i in non_zero_indices]
+
+        # Plot the filtered trend line
+        plt.plot(filtered_y_values, filtered_trend_line, label="Trend Line for Electric Field - Slope of 200")
+
         plt.title("Potential Distribution at x = 0")
         plt.ylabel("Potential (V)")
         plt.xlabel("y (meters)")
