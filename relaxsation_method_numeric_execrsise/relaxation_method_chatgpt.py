@@ -11,8 +11,8 @@ GRID_WIDTH = 0.05  # meters
 STEP_SIZE = 0.00025  # meters
 REQUIRED_PRECISION = 0.0001
 MAX_ITERATIONS = 999999999
-TOP_PLATE_POTENTIAL = -0.5
-BOTTOM_PLATE_POTENTIAL = 0.5
+TOP_PLATE_POTENTIAL = 0.5
+BOTTOM_PLATE_POTENTIAL = -0.5
 PLATE_OFFSET = 0.0025  # meters
 X_MAX_OF_DISK = 0.1  # meters
 EPSILON_ZERO = 8.854 * 10 ** -12
@@ -198,7 +198,6 @@ class PotentialPlotter:
     def get_electric_field(self):
         charge_density = self.calculate_electric_field() * EPSILON_ZERO
         integral = 0
-        charge_density.head(401).to_excel("electric_field.xlsx")
         for row_number in range(0, 401):
             charge_density_value = charge_density[row_number]
             radius = (row_number * self.potential_grid.step_size ** 2)
@@ -207,7 +206,6 @@ class PotentialPlotter:
 
     def calculate_electric_field(self):
         potential_values_for_electric_field = pd.DataFrame(self.potential_grid.grid[:, :])
-        potential_values_for_electric_field.to_excel("raw_Data_2.xlsx")
         charge_density = (
                                  (potential_values_for_electric_field.iloc[:, 190]
                                   - potential_values_for_electric_field.iloc[:, 191]) / self.potential_grid.step_size
@@ -266,7 +264,6 @@ def calculate_integral_for_different_h():
         )
         solver = RelaxationSolver(potential_grid, REQUIRED_PRECISION, MAX_ITERATIONS)
         grids = solver.relax_potential()
-        pd.DataFrame(grids[-1]).to_excel("raw_data.xlsx")
         plotter = PotentialPlotter(potential_grid, grids)
         print(plotter.plot_potential_line_at_x0())
 
