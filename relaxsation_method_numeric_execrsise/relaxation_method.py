@@ -1,126 +1,318 @@
-from typing import Union
 import numpy as np
-from matplotlib import pyplot as plt, animation
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 from numba import jit
+import matplotlib.animation as animation
+import pandas as pd
+from relaxsation_method_numeric_execrsise.prove_derivative_equation import plot_differential_equation_comparison
 
-LENGTH_OF_GRID = 500
-WIDTH_OF_GRID = 200
-REQUIRED_PRECISION = 0.04
-BASE_DISK_HEIGHT = 20
-LOWER_Y_OF_DISK = BASE_DISK_HEIGHT
-UPPER_Y_OF_DISK = BASE_DISK_HEIGHT + 1
-LOWER_X_OF_DISK = 0
-UPPER_X_OF_DISK = 400
-POTENTIAL_AT_DISK = 0.5
-STEP_SIZE = 0.5
-
-ALLOWED_TO_PRINT = False
-
-
-def custom_print(*args):
-    if ALLOWED_TO_PRINT:
-        print(*args)
+# Parameters
+GRID_LENGTH = 0.125  # meters
+GRID_WIDTH = 0.05  # meters
+STEP_SIZE = 0.00025  # meters
+REQUIRED_PRECISION = 0.0001
+MAX_ITERATIONS = 999999999
+TOP_PLATE_POTENTIAL = -0.5
+BOTTOM_PLATE_POTENTIAL = 0.5
+PLATE_OFFSET = 0.0025  # meters
+X_MAX_OF_DISK = 0.1  # meters
+EPSILON_ZERO = 8.854 * 10 ** -12
 
 
-def initialize_grid(length_input: int, width_input: int, max_change: float) -> np.ndarray:
-    """
-    Initialize the grid with a central hot spot.
-        :param max_change: The initial charge of the hot spot.
-        :param length_input: The size of the grid (size x size).
-        :param width_input: The size of the grid (size x size).
+class PotentialGrid:
+    def __init__(self, length, width, step_size, top_potential, bottom_potential, plate_offset):
+        self.length = length
+        self.width = width
+        self.step_size = step_size
+        self.top_potential = top_potential
+        self.bottom_potential = bottom_potential
+        self.plate_offset = plate_offset
+        self.grid = self.initialize_grid()
 
-    :return:
-        np.ndarray: Initialized grid.
+    def initialize_grid(self):
+        length_idx = int(self.length / self.step_size)
+        width_idx = int(self.width / self.step_size)
+        grid = np.zeros((length_idx + 1, 2 * width_idx + 1))
 
-    """
-    grid = (np.zeros(
-        shape=(length_input, width_input)))
-    grid[LOWER_X_OF_DISK: UPPER_X_OF_DISK, LOWER_Y_OF_DISK: UPPER_Y_OF_DISK, ] = max_change
-    return grid
+        top_plate_y = width_idx + int(self.plate_offset / self.step_size)
+        bottom_plate_y = width_idx - int(self.plate_offset / self.step_size)
 
-
-def is_allowed_area(x, y) -> bool:
-    # Todo: should split to two fore each dosk
-    is_allowed = (y < LOWER_Y_OF_DISK or UPPER_Y_OF_DISK < y or x < LOWER_X_OF_DISK or UPPER_X_OF_DISK < x)
-    return is_allowed
-
-
-def is_outside(column, row):
-    return row < 0 or row >= WIDTH_OF_GRID or column < 0 or column >= LENGTH_OF_GRID
+        grid[:int(X_MAX_OF_DISK / STEP_SIZE), top_plate_y] = self.top_potential
+        grid[:int(X_MAX_OF_DISK / STEP_SIZE), bottom_plate_y] = self.bottom_potential
+        return grid
 
 
-def get_potential_from_neighbor(row, column, grid):
-    #         Todo: should split for each dosk
-    if not is_allowed_area(y=column, x=row):
-        return POTENTIAL_AT_DISK
-    elif is_outside(column=column, row=row):
-        return 0
+@jit(nopython=True)
+def numba_relax_potential(grid, length_idx, width_idx, step_size, precision, max_iterations, plate_offset_idx):
+    grids = []
+    for iteration in range(max_iterations):
+        max_diff = 0
+        new_grid = grid.copy()
+        for x in range(0, length_idx):
+            for y in range(1, 2 * width_idx):
+                if (y == width_idx + plate_offset_idx or y == width_idx - plate_offset_idx) and x < int(
+                        X_MAX_OF_DISK / step_size):
+                    continue
+                value_at_left_point = grid[x, y] * (1 + step_size / (2 * (x if x != 0 else 1)))
+                if x != 0:
+                    value_at_left_point = grid[x - 1, y] * (1 + step_size / (2 * (x if x != 0 else 1)))
+                new_grid[x, y] = 0.25 * (
+                        grid[x + 1, y] * (1 + step_size / (2 * (x if x != 0 else 1))) +
+                        value_at_left_point +
+                        grid[x, y + 1] +
+                        grid[x, y - 1]
+                )
+                max_diff = max(max_diff, abs(new_grid[x, y] - grid[x, y]))
+        grid[:] = new_grid
+        grids.append(grid.copy())
+        if max_diff < precision:
+            print(f"Converged after {iteration + 1} iterations")
+            break
     else:
-        return grid[row, column]
-
-@jit
-def calculate_potential(row, column, step_size, grid):
-    calculated_potential = 1 / 4 * (
-            get_potential_from_neighbor(row + 1, column, grid) * (1 + step_size / (2 * row))
-            + get_potential_from_neighbor(row - 1, column, grid) * (1 - step_size / (2 * row))
-            + get_potential_from_neighbor(row, column + 1, grid)
-            + get_potential_from_neighbor(row, column - 1, grid))
-    return calculated_potential
+        print("Did not converge within the maximum number of iterations")
+    return grids
 
 
-def update_potential(grid: np.array) -> Union[np.array, float]:
-    new_grid = grid.copy()
-    max_diff_between_last_value_and_new = 0
-    counter = 0
-    for row in range(1, LENGTH_OF_GRID):
-        for column in range(1, WIDTH_OF_GRID):
-            if is_allowed_area(x=row, y=column) and not is_outside(column=column, row=row):
-                counter += 1
-                custom_print(row, column)
-                new_value = calculate_potential(row=row, column=column, step_size=STEP_SIZE, grid=grid)
-                new_grid[row, column] = new_value
-                abs(new_grid[row, column] - new_value) / new_value
-                max_diff_between_last_value_and_new = max(max_diff_between_last_value_and_new,
-                                                          abs(new_grid[row, column] - new_value) / new_value)
-    custom_print(max_diff_between_last_value_and_new)
-    return new_grid, max_diff_between_last_value_and_new
+class RelaxationSolver:
+    def __init__(self, potential_grid, precision, max_iterations):
+        self.potential_grid = potential_grid
+        self.precision = precision
+        self.max_iterations = max_iterations
+
+    def relax_potential(self):
+        length_idx = int(self.potential_grid.length / self.potential_grid.step_size)
+        width_idx = int(self.potential_grid.width / self.potential_grid.step_size)
+        plate_offset_idx = int(self.potential_grid.plate_offset / self.potential_grid.step_size)
+        return numba_relax_potential(
+            self.potential_grid.grid,
+            length_idx,
+            width_idx,
+            self.potential_grid.step_size,
+            self.precision,
+            self.max_iterations,
+            plate_offset_idx
+        )
 
 
-def animate_heat_diffusion(grid_list: list[np.ndarray], interval) -> None:
-    """
-    Animate the heat diffusion process.
+def save_animation_as_different_file_format(ani):
+    try:
+        ani.save('potential_animation.gif', writer='pillow')
+        print("Animation successfully saved as potential_animation.gif")
+    except Exception as e:
+        print(f"Failed to save GIF animation: {e}")
 
-    Args:
-        grid_list (list[np.ndarray]): List of grids at each time step.
-        :param grid_list:
-        :param interval:
-    """
-    fig, ax = plt.subplots()
-    cax = ax.matshow(grid_list[0], cmap='hot', origin="lower")
-    fig.colorbar(cax)
-    ax.xaxis.set_ticks_position('bottom')
-    ax.xaxis.set_label_position('bottom')
+    try:
+        ani.save('potential_animation.mp4', writer='ffmpeg')
+        print("Animation successfully saved as potential_animation.mp4")
+    except Exception as e:
+        print(f"Failed to save MP4 animation: {e}")
 
-    def update(frame: int):
-        cax.set_data(grid_list[frame])
-        return cax,
+    try:
+        ani.save('potential_animation.mov', writer='ffmpeg')
+        print("Animation successfully saved as potential_animation.mov")
+    except Exception as e:
+        print(f"Failed to save MOV animation: {e}")
 
-    ani = animation.FuncAnimation(fig, update, frames=len(grid_list), interval=interval, blit=True)
-    plt.show()
+    try:
+        ani.save('potential_animation.avi', writer='ffmpeg')
+        print("Animation successfully saved as potential_animation.avi")
+    except Exception as e:
+        print(f"Failed to save AVI animation: {e}")
+
+    try:
+        ani.save('potential_animation.html', writer='html')
+        print("Animation successfully saved as potential_animation.html")
+    except Exception as e:
+        print(f"Failed to save HTML5 animation: {e}")
+
+
+class PotentialPlotter:
+    def __init__(self, potential_grid, grids):
+        self.potential_grid = potential_grid
+        self.grids = grids
+
+    def plot_potential(self):
+        plt.figure(figsize=(12, 8))
+        plt.title("Potential Distribution Around the Board Capacitor")
+        plt.xlabel("r (meters)")
+        plt.ylabel("z (meters)")
+        plt.gca().invert_yaxis()
+        plt.imshow(
+            self.potential_grid.grid.T,
+            extent=[0, self.potential_grid.length, -self.potential_grid.width, self.potential_grid.width],
+            cmap='hot',
+            norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
+        )
+        plt.colorbar(label='Potential (V)')
+        plt.savefig("Potential Distribution Around the Board Capacitor .png")
+        plt.show()
+
+    def plot_positive_y_values(self):
+        fig, ax = plt.subplots(figsize=(12, 8))
+        im = ax.imshow(
+            self.potential_grid.grid[:, int(self.potential_grid.width / self.potential_grid.step_size):].T,
+            extent=[0, self.potential_grid.length, 0, self.potential_grid.width],
+            cmap='hot',
+            norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
+        )
+        ax.set_title("Potential Distribution for Positive r, z Values")
+        ax.set_xlabel("r (meters)")
+        ax.set_ylabel("z (meters)")
+        ax.invert_yaxis()
+        plt.colorbar(im, ax=ax, orientation='vertical', label='Potential (V)')
+        plt.savefig("Potential Distribution for Positive r, z Values.png")
+        plt.show()
+
+    def plot_negative_y_values(self):
+        fig, ax = plt.subplots(figsize=(12, 8))
+        im = ax.imshow(
+            self.potential_grid.grid[:, :int(self.potential_grid.width / self.potential_grid.step_size)].T,
+            extent=[0, self.potential_grid.length, -self.potential_grid.width, 0],
+            cmap='hot',
+            norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
+        )
+        ax.set_title("Potential Distribution for Negative y Values")
+        ax.set_xlabel("r (meters)")
+        ax.set_ylabel("z (meters)")
+        ax.invert_yaxis()
+        plt.colorbar(im, ax=ax, orientation='vertical', label='Potential (V)')
+        plt.savefig("Potential Distribution for Negative y Values .png")
+        plt.show()
+
+    def plot_potential_line_at_x0(self):
+        potential_values = self.potential_grid.grid[1, :]
+        y_values = np.linspace(-self.potential_grid.width, self.potential_grid.width, len(potential_values))
+
+        # Plot the potential values at x = 0
+        plt.figure(figsize=(12, 8))
+        plt.plot(y_values, potential_values[::-1], label="Potential at r = 0", color='b', marker=".")
+
+        # Generate the trend line
+        electric_field_trend_line = (
+                list(0 for _ in range(0, 190)) +
+                list(200 * i * self.potential_grid.step_size for i in range(-10, 11)) +
+                list(0 for _ in range(0, 190))
+        )
+
+        # Filter out zero values from the trend line
+        non_zero_indices = [i for i, value in enumerate(electric_field_trend_line) if value != 0]
+        filtered_y_values = [y_values[i] for i in non_zero_indices]
+        filtered_trend_line = [electric_field_trend_line[i] for i in non_zero_indices]
+
+        # Plot the filtered trend line
+        plt.plot(filtered_y_values, filtered_trend_line, label="Trend Line for Electric Field - Slope of 200")
+
+        plt.title("Potential Distribution at r = 0")
+        plt.ylabel("Potential (V)")
+        plt.xlabel("z (meters)")
+        plt.grid(True)
+        plt.axhline(0, color='black', linewidth=0.5)
+        plt.legend()
+        plt.show()
+
+    def plot_charge_density_line_at_x0(self):
+        charge_density = (self.calculate_electric_field() * EPSILON_ZERO)[:400]
+        y_values = np.linspace(0, 400, len(charge_density))
+        plt.figure(figsize=(12, 8))
+        plt.plot(y_values, charge_density, label="Charge Density at Disk", color='b', marker=".")
+        plt.title("Charge Density at Disk")
+        plt.ylabel("Charge Density (c/m^2)")
+        plt.xlabel("r (m)")
+        plt.grid(True)
+        plt.axhline(0, color='black', linewidth=0.5)
+        plt.legend()
+        plt.show()
+
+    def get_electric_field(self):
+        charge_density = self.calculate_electric_field() * EPSILON_ZERO
+        integral = 0
+        for row_number in range(0, int(X_MAX_OF_DISK/self.potential_grid.step_size)):
+            charge_density_value = charge_density[row_number]
+            radius = (row_number * self.potential_grid.step_size ** 2)
+            integral += radius * 2 * np.pi * charge_density_value
+        return self.potential_grid.step_size, integral
+
+    def calculate_electric_field(self):
+        potential_values_for_electric_field = pd.DataFrame(self.potential_grid.grid[:, :])
+        charge_density = (
+                                 (potential_values_for_electric_field.iloc[:, int(self.potential_grid.width / self.potential_grid.step_size)
+                                                                              - int(self.potential_grid.plate_offset
+                                                                                    / self.potential_grid.step_size)]
+                                  - potential_values_for_electric_field.iloc[:, int(self.potential_grid.width / self.potential_grid.step_size)
+                                                                                - int(self.potential_grid.plate_offset
+                                                                                      / self.potential_grid.step_size)+1])
+                                 / self.potential_grid.step_size
+                         )
+        return charge_density
+
+    def animate_potential(self):
+        fig, ax = plt.subplots(figsize=(12, 8))
+        ax.set_title("Potential Distribution Around the Board Capacitor")
+        ax.set_xlabel("x (meters)")
+        ax.set_ylabel("y (meters)")
+        ax.invert_yaxis()
+
+        im = ax.imshow(
+            self.grids[0].T,
+            extent=[0, self.potential_grid.length, -self.potential_grid.width, self.potential_grid.width],
+            cmap='hot',
+            norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
+        )
+        plt.colorbar(im, ax=ax, label='Potential (V)')
+
+        def update(frame):
+            im.set_data(self.grids[frame].T)
+            return [im]
+
+        ani = animation.FuncAnimation(fig, update, frames=len(self.grids), blit=True, interval=50)
+
+        # save_animation_as_different_file_format(ani)
+
+        plt.show()
 
 
 def main():
-    grid = initialize_grid(WIDTH_OF_GRID, LENGTH_OF_GRID, POTENTIAL_AT_DISK)
-    max_diff_between_last_value_and_new = 1
-    grid_list = [grid.copy()]
-    counter = 1
-    while REQUIRED_PRECISION < max_diff_between_last_value_and_new or counter < 100:
-        counter += 1
-        grid, max_diff_between_last_value_and_new = update_potential(grid=grid)
-        grid_list.append(grid.copy())
-    print(grid)
-    animate_heat_diffusion(grid_list=grid_list, interval=20)  # Adjust interval to slow down transitions
+    potential_grid = PotentialGrid(
+        GRID_LENGTH, GRID_WIDTH, STEP_SIZE, TOP_PLATE_POTENTIAL, BOTTOM_PLATE_POTENTIAL, PLATE_OFFSET
+    )
+    solver = RelaxationSolver(potential_grid, REQUIRED_PRECISION, MAX_ITERATIONS)
+    grids = solver.relax_potential()
+    plotter = PotentialPlotter(potential_grid, grids)
+
+    plotter.plot_potential()
+    plotter.plot_positive_y_values()
+    plotter.plot_negative_y_values()
+    plotter.plot_potential_line_at_x0()
+    plotter.plot_charge_density_line_at_x0()
+    plotter.plot_potential_line_at_x0()
+    plotter.animate_potential()
+
+
+def calculate_integral_for_different_h():
+    l = []
+    for h in [
+        STEP_SIZE / 2,
+        STEP_SIZE,
+        STEP_SIZE * 2, STEP_SIZE * 4, STEP_SIZE * 8
+            ]:
+        potential_grid = PotentialGrid(
+            GRID_LENGTH, GRID_WIDTH, h, TOP_PLATE_POTENTIAL, BOTTOM_PLATE_POTENTIAL, PLATE_OFFSET
+        )
+        solver = RelaxationSolver(potential_grid, REQUIRED_PRECISION, MAX_ITERATIONS)
+        grids = solver.relax_potential()
+        plotter = PotentialPlotter(potential_grid, grids)
+        l.append(plotter.get_electric_field())
+    plt.plot(list(i[0] for i in l), list(i[1] for i in l))
+    plt.title("Calculated Capacity for h Values")
+    plt.ylabel("Calculated Capacity (F)")
+    plt.xlabel("h, Step Size (m)")
+    plt.grid(True)
+    plt.axhline(0, color='black', linewidth=0.5)
+    plt.legend()
+    plt.show()
 
 
 if __name__ == "__main__":
+    plot_differential_equation_comparison()
+    calculate_integral_for_different_h()
     main()
