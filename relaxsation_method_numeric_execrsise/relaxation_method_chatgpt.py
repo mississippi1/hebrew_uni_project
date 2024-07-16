@@ -154,12 +154,12 @@ class PotentialPlotter:
             cmap='hot',
             norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
         )
-        ax.set_title("Potential Distribution for Positive y Values")
+        ax.set_title("Potential Distribution for Positive r, z Values")
         ax.set_xlabel("r (meters)")
         ax.set_ylabel("z (meters)")
         ax.invert_yaxis()
         plt.colorbar(im, ax=ax, orientation='vertical', label='Potential (V)')
-        plt.savefig("Potential Distribution for Positive y Values.png")
+        plt.savefig("Potential Distribution for Positive r, z Values.png")
         plt.show()
 
     def plot_negative_y_values(self):
@@ -225,17 +225,22 @@ class PotentialPlotter:
     def get_electric_field(self):
         charge_density = self.calculate_electric_field() * EPSILON_ZERO
         integral = 0
-        for row_number in range(0, 401):
+        for row_number in range(0, int(X_MAX_OF_DISK/self.potential_grid.step_size)):
             charge_density_value = charge_density[row_number]
             radius = (row_number * self.potential_grid.step_size ** 2)
             integral += radius * 2 * np.pi * charge_density_value
-        return f"step_size: " + str(self.potential_grid.step_size) + ". integral: " + str(integral)
+        return self.potential_grid.step_size, integral
 
     def calculate_electric_field(self):
         potential_values_for_electric_field = pd.DataFrame(self.potential_grid.grid[:, :])
         charge_density = (
-                                 (potential_values_for_electric_field.iloc[:, 190]
-                                  - potential_values_for_electric_field.iloc[:, 191]) / self.potential_grid.step_size
+                                 (potential_values_for_electric_field.iloc[:, int(self.potential_grid.width / self.potential_grid.step_size)
+                                                                              - int(self.potential_grid.plate_offset
+                                                                                    / self.potential_grid.step_size)]
+                                  - potential_values_for_electric_field.iloc[:, int(self.potential_grid.width / self.potential_grid.step_size)
+                                                                                - int(self.potential_grid.plate_offset
+                                                                                      / self.potential_grid.step_size)+1])
+                                 / self.potential_grid.step_size
                          )
         return charge_density
 
@@ -277,14 +282,17 @@ def main():
     plotter.plot_positive_y_values()
     plotter.plot_negative_y_values()
     plotter.plot_potential_line_at_x0()
+    plotter.plot_charge_density_line_at_x0()
+    plotter.plot_potential_line_at_x0()
     plotter.animate_potential()
 
 
 def calculate_integral_for_different_h():
+    l = []
     for h in [
-        # STEP_SIZE / 2,
+        STEP_SIZE / 2,
         STEP_SIZE,
-        # STEP_SIZE * 2, STEP_SIZE * 4, STEP_SIZE * 8
+        STEP_SIZE * 2, STEP_SIZE * 4, STEP_SIZE * 8
             ]:
         potential_grid = PotentialGrid(
             GRID_LENGTH, GRID_WIDTH, h, TOP_PLATE_POTENTIAL, BOTTOM_PLATE_POTENTIAL, PLATE_OFFSET
@@ -292,9 +300,16 @@ def calculate_integral_for_different_h():
         solver = RelaxationSolver(potential_grid, REQUIRED_PRECISION, MAX_ITERATIONS)
         grids = solver.relax_potential()
         plotter = PotentialPlotter(potential_grid, grids)
-        plotter.plot_potential_line_at_x0()
-        plotter.plot_charge_density_line_at_x0()
-
+        l.append(plotter.get_electric_field())
+    print(l)
+    plt.plot(list(i[0] for i in l), list(i[1] for i in l))
+    plt.title("Calculated Charge for h Values")
+    plt.ylabel("Calculated Charge (C)")
+    plt.xlabel("h, Step Size (m)")
+    plt.grid(True)
+    plt.axhline(0, color='black', linewidth=0.5)
+    plt.legend()
+    plt.show()
 
 
 if __name__ == "__main__":
