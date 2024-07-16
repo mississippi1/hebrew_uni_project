@@ -143,7 +143,7 @@ class PotentialPlotter:
             norm=mcolors.Normalize(vmin=-0.5, vmax=0.5)
         )
         plt.colorbar(label='Potential (V)')
-        plt.savefig("Potential Distribution Around the Board Capacitor.png")
+        plt.savefig("Potential Distribution Around the Board Capacitor .png")
         plt.show()
 
     def plot_positive_y_values(self):
@@ -175,38 +175,28 @@ class PotentialPlotter:
         ax.set_ylabel("z (meters)")
         ax.invert_yaxis()
         plt.colorbar(im, ax=ax, orientation='vertical', label='Potential (V)')
-        plt.savefig("Potential Distribution for Negative y Values.png")
+        plt.savefig("Potential Distribution for Negative y Values .png")
         plt.show()
 
     def plot_potential_line_at_x0(self):
         potential_values = self.potential_grid.grid[1, :]
         y_values = np.linspace(-self.potential_grid.width, self.potential_grid.width, len(potential_values))
         plt.figure(figsize=(12, 8))
-        plt.plot(potential_values, y_values, label="Potential at x = 0", color='b')
+        plt.plot(y_values, potential_values[::-1], label="Potential at x = 0", color='b', marker=".")
+        electric_field_trend_line = (list(0 for _ in range(0, 190))
+                          + list(200 * i * self.potential_grid.step_size for i in range(-10, 11))
+                          + list(0 for _ in range(0, 190)))
+        plt.plot(y_values, electric_field_trend_line, label="Trend Line for Electric Field")
         plt.title("Potential Distribution at x = 0")
-        plt.xlabel("Potential (V)")
-        plt.ylabel("y (meters)")
-        plt.grid(True)
-        plt.axhline(0, color='black', linewidth=0.5)
-        plt.legend()
-        plt.show()
-
-    def plot_electric_field_line_at_x0(self):
-        potential_values = self.potential_grid.grid[1, :]
-        self.get_electric_field()
-        y_values = np.linspace(-self.potential_grid.width, self.potential_grid.width, len(potential_values))
-        plt.figure(figsize=(12, 8))
-        plt.plot(potential_values, y_values, label="Electric Field at x = 0", color='b')
-        plt.title("Electric Field Distribution at x = 0")
-        plt.xlabel("Electric Field (E)")
-        plt.ylabel("y (meters)")
+        plt.ylabel("Potential (V)")
+        plt.xlabel("y (meters)")
         plt.grid(True)
         plt.axhline(0, color='black', linewidth=0.5)
         plt.legend()
         plt.show()
 
     def get_electric_field(self):
-        charge_density = self.calculate_electric_field()
+        charge_density = self.calculate_electric_field() * EPSILON_ZERO
         integral = 0
         charge_density.head(401).to_excel("electric_field.xlsx")
         for row_number in range(0, 401):
@@ -221,7 +211,7 @@ class PotentialPlotter:
         charge_density = (
                                  (potential_values_for_electric_field.iloc[:, 190]
                                   - potential_values_for_electric_field.iloc[:, 191]) / self.potential_grid.step_size
-                         ) * EPSILON_ZERO
+                         )
         return charge_density
 
     def animate_potential(self):
@@ -278,9 +268,9 @@ def calculate_integral_for_different_h():
         grids = solver.relax_potential()
         pd.DataFrame(grids[-1]).to_excel("raw_data.xlsx")
         plotter = PotentialPlotter(potential_grid, grids)
-        print(plotter.plot_electric_field_line_at_x0())
+        print(plotter.plot_potential_line_at_x0())
 
 
 if __name__ == "__main__":
     calculate_integral_for_different_h()
-    # main()
+    main()
