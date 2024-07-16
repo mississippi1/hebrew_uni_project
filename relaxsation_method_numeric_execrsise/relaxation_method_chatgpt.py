@@ -4,6 +4,7 @@ import matplotlib.colors as mcolors
 from numba import jit
 import matplotlib.animation as animation
 import pandas as pd
+from relaxsation_method_numeric_execrsise.prove_derivative_equation import plot_differential_equation_comparison
 
 # Parameters
 GRID_LENGTH = 0.125  # meters
@@ -215,8 +216,8 @@ class PotentialPlotter:
         plt.figure(figsize=(12, 8))
         plt.plot(y_values, charge_density, label="Charge Density at Disk", color='b', marker=".")
         plt.title("Charge Density at Disk")
-        plt.ylabel("Charge Density (σ)")
-        plt.xlabel("r (meters)")
+        plt.ylabel("Charge Density (c/m^2)")
+        plt.xlabel("r (m)")
         plt.grid(True)
         plt.axhline(0, color='black', linewidth=0.5)
         plt.legend()
@@ -301,10 +302,9 @@ def calculate_integral_for_different_h():
         grids = solver.relax_potential()
         plotter = PotentialPlotter(potential_grid, grids)
         l.append(plotter.get_electric_field())
-    print(l)
     plt.plot(list(i[0] for i in l), list(i[1] for i in l))
-    plt.title("Calculated Charge for h Values")
-    plt.ylabel("Calculated Charge (C)")
+    plt.title("Calculated Capacity for h Values")
+    plt.ylabel("Calculated Capacity (F)")
     plt.xlabel("h, Step Size (m)")
     plt.grid(True)
     plt.axhline(0, color='black', linewidth=0.5)
@@ -313,5 +313,6 @@ def calculate_integral_for_different_h():
 
 
 if __name__ == "__main__":
+    plot_differential_equation_comparison()
     calculate_integral_for_different_h()
     main()
