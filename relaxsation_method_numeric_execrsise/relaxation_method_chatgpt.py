@@ -10,7 +10,7 @@ GRID_LENGTH = 0.125  # meters
 GRID_WIDTH = 0.05  # meters
 STEP_SIZE = 0.00025  # meters
 REQUIRED_PRECISION = 0.0001
-MAX_ITERATIONS = 10_000
+MAX_ITERATIONS = 999999999
 TOP_PLATE_POTENTIAL = -0.5
 BOTTOM_PLATE_POTENTIAL = 0.5
 PLATE_OFFSET = 0.0025  # meters
@@ -47,14 +47,17 @@ def numba_relax_potential(grid, length_idx, width_idx, step_size, precision, max
     for iteration in range(max_iterations):
         max_diff = 0
         new_grid = grid.copy()
-        for x in range(1, length_idx):
+        for x in range(0, length_idx):
             for y in range(1, 2 * width_idx):
                 if (y == width_idx + plate_offset_idx or y == width_idx - plate_offset_idx) and x < int(
                         X_MAX_OF_DISK / step_size):
                     continue
+                value_at_left_point = grid[x, y] * (1 + step_size / (2 * (x if x != 0 else 1)))
+                if x != 0:
+                    value_at_left_point = grid[x - 1, y] * (1 + step_size / (2 * (x if x != 0 else 1)))
                 new_grid[x, y] = 0.25 * (
                         grid[x + 1, y] * (1 + step_size / (2 * (x if x != 0 else 1))) +
-                        grid[x - 1, y] * (1 - step_size / (2 * (x if x != 0 else 1))) +
+                        value_at_left_point +
                         grid[x, y + 1] +
                         grid[x, y - 1]
                 )
@@ -175,18 +178,9 @@ class PotentialPlotter:
         plt.savefig("Potential Distribution for Negative y Values.png")
         plt.show()
 
-    def plot_vertical_line_at_x0(self):
-        length_idx = int(self.potential_grid.length / self.potential_grid.step_size)
-        width_idx = int(self.potential_grid.width / self.potential_grid.step_size)
-        plate_offset_idx = int(self.potential_grid.plate_offset / self.potential_grid.step_size)
-
-        # Corrected index to extract the potential values along the vertical line at x = 0
-        potential_values = self.potential_grid.grid[:, width_idx]
+    def plot_potential_line_at_x0(self):
+        potential_values = self.potential_grid.grid[1, :]
         y_values = np.linspace(-self.potential_grid.width, self.potential_grid.width, len(potential_values))
-        self.get_electric_field()
-        # Create corresponding y-values
-        y_values = np.linspace(-self.potential_grid.width, self.potential_grid.width, len(potential_values))
-
         plt.figure(figsize=(12, 8))
         plt.plot(potential_values, y_values, label="Potential at x = 0", color='b')
         plt.title("Potential Distribution at x = 0")
@@ -197,22 +191,38 @@ class PotentialPlotter:
         plt.legend()
         plt.show()
 
+    def plot_electric_field_line_at_x0(self):
+        potential_values = self.potential_grid.grid[1, :]
+        self.get_electric_field()
+        y_values = np.linspace(-self.potential_grid.width, self.potential_grid.width, len(potential_values))
+        plt.figure(figsize=(12, 8))
+        plt.plot(potential_values, y_values, label="Electric Field at x = 0", color='b')
+        plt.title("Electric Field Distribution at x = 0")
+        plt.xlabel("Electric Field (E)")
+        plt.ylabel("y (meters)")
+        plt.grid(True)
+        plt.axhline(0, color='black', linewidth=0.5)
+        plt.legend()
+        plt.show()
 
     def get_electric_field(self):
-        potential_values_for_electric_field = pd.DataFrame(self.potential_grid.grid[:, :])
-        electric_field = (
-                                 (
-                                         potential_values_for_electric_field.iloc[:,
-                                         int(X_MAX_OF_DISK / self.potential_grid.step_size)]
-                                         - potential_values_for_electric_field.iloc[:,
-                                           int(X_MAX_OF_DISK / self.potential_grid.step_size) - 2]
-                                 ) / (2 * STEP_SIZE)
-                         ) * EPSILON_ZERO
+        charge_density = self.calculate_electric_field()
         integral = 0
-        for row_number in range(0, int(X_MAX_OF_DISK / self.potential_grid.step_size)):
-            row_value = electric_field[row_number]
-            integral += (row_number * STEP_SIZE) * 2 * np.pi * row_value
-        return f"step_size: " + str(self.potential_grid.step_size) + "integral: " + str(integral)
+        charge_density.head(401).to_excel("electric_field.xlsx")
+        for row_number in range(0, 401):
+            charge_density_value = charge_density[row_number]
+            radius = (row_number * self.potential_grid.step_size ** 2)
+            integral += radius * 2 * np.pi * charge_density_value
+        return f"step_size: " + str(self.potential_grid.step_size) + ". integral: " + str(integral)
+
+    def calculate_electric_field(self):
+        potential_values_for_electric_field = pd.DataFrame(self.potential_grid.grid[:, :])
+        potential_values_for_electric_field.to_excel("raw_Data_2.xlsx")
+        charge_density = (
+                                 (potential_values_for_electric_field.iloc[:, 190]
+                                  - potential_values_for_electric_field.iloc[:, 191]) / self.potential_grid.step_size
+                         ) * EPSILON_ZERO
+        return charge_density
 
     def animate_potential(self):
         fig, ax = plt.subplots(figsize=(12, 8))
@@ -251,20 +261,26 @@ def main():
     plotter.plot_potential()
     plotter.plot_positive_y_values()
     plotter.plot_negative_y_values()
-    plotter.plot_vertical_line_at_x0()
+    plotter.plot_potential_line_at_x0()
     plotter.animate_potential()
 
 
 def calculate_integral_for_different_h():
-    for h in [STEP_SIZE / 4, STEP_SIZE / 2, STEP_SIZE, STEP_SIZE * 2, STEP_SIZE * 4, STEP_SIZE * 8]:
+    for h in [
+        # STEP_SIZE / 2,
+        STEP_SIZE,
+        # STEP_SIZE * 2, STEP_SIZE * 4, STEP_SIZE * 8
+            ]:
         potential_grid = PotentialGrid(
             GRID_LENGTH, GRID_WIDTH, h, TOP_PLATE_POTENTIAL, BOTTOM_PLATE_POTENTIAL, PLATE_OFFSET
         )
         solver = RelaxationSolver(potential_grid, REQUIRED_PRECISION, MAX_ITERATIONS)
         grids = solver.relax_potential()
+        pd.DataFrame(grids[-1]).to_excel("raw_data.xlsx")
         plotter = PotentialPlotter(potential_grid, grids)
-        print(plotter.get_electric_field())
+        print(plotter.plot_electric_field_line_at_x0())
 
 
 if __name__ == "__main__":
     calculate_integral_for_different_h()
+    # main()
