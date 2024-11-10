@@ -33,7 +33,7 @@ def plot_differential_equation_comparison():
 
     # Plot the errors
     plt.figure(figsize=(10, 6))
-    plt.loglog(h_values, regular_errors, label='Regular Difference Quotient', marker='o')
+    (plt.loglog(h_values, regular_errors, label='Regular Difference Quotient', marker='o'))
     plt.loglog(h_values, central_errors, label='Central Difference Quotient', marker='x')
     plt.xlabel('h')
     plt.ylabel('Absolute Error')
