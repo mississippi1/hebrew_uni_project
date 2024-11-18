@@ -4,8 +4,8 @@ import os
 
 selected_columns = ['D', 'E', 'J', 'K']
 # Path to the uploaded zip file
-zip_file_path = '/Users/tomerpeker/Downloads/drive-download-20241110T143514Z-001.zip'
-extracted_folder_path = '/Users/tomerpeker/Downloads/lab_b_1'
+zip_file_path = '/Users/tomerpeker/Downloads/hysteresis_loop_for_2_data.zip'
+extracted_folder_path = '/Users/tomerpeker/Downloads/lab_b_1/hysteresis_loop_for_2_data'
 
 # Extract the zip file
 with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:

@@ -40,7 +40,7 @@ plt.plot([0 for _ in range(250)],
 plt.xlabel('Vx (V)')
 plt.ylabel('Vc (V)')
 plt.grid(True)
-plt.xlim(-0.4, 0.4)
+plt.xlim(-0.38, 0.38)
 plt.ylim(-0.04, 0.04)
 plt.title('Vx Vs Vc Across Experiments')
 
