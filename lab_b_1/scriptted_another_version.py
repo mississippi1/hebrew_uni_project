@@ -60,10 +60,11 @@ def func(file_name_input):
 
 
 a = []
-metal_type = 'Metal 2'
+metal_type = 'Metal 1'
 for file_name in sorted(list(i for i in os.listdir('/Users/tomerpeker/Downloads/lab_b_1/%s/' % metal_type))):
     if file_name.endswith(".xlsx"):
         func(file_name_input="/Users/tomerpeker/Downloads/lab_b_1/" + metal_type + "/" + file_name)
+        print(file_name)
 plt.scatter(x=[i[2] for i in a]+[0], y=[i[3] for i in a]+[0], color="red", marker='*')
 plt.plot(sorted([i[2] for i in a]+[0]), sorted([i[3] for i in a]+[0]), color="red")
 # plt.scatter(x=[i[0] for i in a]+[0], y=[i[1] for i in a]+[0], color="red", marker='*')
