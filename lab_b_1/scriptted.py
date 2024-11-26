@@ -41,9 +41,9 @@ def func(file_name_input):
                    len("/Users/tomerpeker/Downloads/lab_b_1/hysteresis_loop_for_2_data/material_4_measure_2_"):]
                     .replace(".csv.xlsx", "")]
                 , color=color)
-    plt.xlabel(f'Vx {ALPHA} E(V)')
+    plt.xlabel(f'Vx {ALPHA} H (V)')
     plt.ylabel(f'Vc {ALPHA} B (V)')
-    plt.title('Hysteresis Loop')
+    plt.title('Metal 2 and Metal 4 - Hysteresis Loop')
     plt.plot(np.linspace(min(volt_ch1 - 0.3), max(volt_ch1 + 0.3), 250),
              [0 for _ in range(250)]
              , color='black')

@@ -35,10 +35,10 @@ def func(file_name_input):
     plt.scatter(x=volt_ch1.groupby(data.index // COEFFICIENT_TO_SMOOTH_LINES).sum().reset_index(
         drop=True) / COEFFICIENT_TO_SMOOTH_LINES,
              y=volt_ch2.groupby(data.index // COEFFICIENT_TO_SMOOTH_LINES).sum().reset_index(
-                 drop=True) / COEFFICIENT_TO_SMOOTH_LINES, s=0.5, color='blue')
-    plt.xlabel(f'Vx {ALPHA} E (V)')
+                 drop=True) / COEFFICIENT_TO_SMOOTH_LINES, s=0.5)
+    plt.xlabel(f'Vx {ALPHA} H (V)')
     plt.ylabel(f'Vc {ALPHA} B (V)')
-    plt.title(f'{metal_type.capitalize()} - Vx {ALPHA} E As a Function of Vc {ALPHA} B')
+    plt.title(f'{metal_type.capitalize()} - Vx {ALPHA} H As a Function of Vc {ALPHA} B')
     plt.plot(np.linspace(min(volt_ch1 - 0.3), max(volt_ch1 + 0.3), 250),
              [0 for _ in range(250)], color='black')
     plt.plot([0 for _ in range(250)],
@@ -67,6 +67,7 @@ for file_name in sorted(list(i for i in os.listdir('/Users/tomerpeker/Downloads/
         print(file_name)
 plt.scatter(x=[i[2] for i in a]+[0], y=[i[3] for i in a]+[0], color="red", marker='*')
 plt.plot(sorted([i[2] for i in a]+[0]), sorted([i[3] for i in a]+[0]), color="red")
+plt.savefig("/Users/tomerpeker/hebrew_uni_project/lab_b_1/images/"+metal_type+"_vx_vs_vc.png")
 # plt.scatter(x=[i[0] for i in a]+[0], y=[i[1] for i in a]+[0], color="red", marker='*')
 # plt.plot(sorted([i[0] for i in a]+[0]), sorted([i[1] for i in a]+[0]), color="red")
-plt.show()
+# plt.show()

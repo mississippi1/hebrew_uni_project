@@ -12,11 +12,11 @@ def smooth_lines(data) -> pd.Series():
         drop=True) / COEFFICIENT_TO_SMOOTH_LINES
 
 
-voltage_2 = pd.read_excel("/Users/tomerpeker/Downloads/lab_b_1/round_corners_2.csv.xlsx",
+voltage_2 = pd.read_excel("/Users/tomerpeker/Downloads/lab_b_1/2.csv.xlsx",
                           sheet_name=0)
 voltage_6 = pd.read_excel("/Users/tomerpeker/Downloads/lab_b_1/6.csv.xlsx",
                           sheet_name=0)
-slim_04 = pd.read_excel("/Users/tomerpeker/Downloads/lab_b_1/slim_4.csv.xlsx",
+slim_04 = pd.read_excel("/Users/tomerpeker/Downloads/lab_b_1/4.csv.xlsx",
                         sheet_name=0)
 
 voltage_2_volt_ch1 = voltage_2['Volt Channel 1 (V)']
