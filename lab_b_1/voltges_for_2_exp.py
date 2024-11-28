@@ -33,19 +33,26 @@ def func(file_name_input):
 
 for num, color in [[1, "green"], [2, "blue"], [4, "red"]]:
     metal_type = f'Metal {num}'
+    max_y_vals = 0
     for file_name in sorted(list(i for i in os.listdir('/Users/tomerpeker/Downloads/lab_b_1/%s/' % metal_type))):
         if file_name.endswith(".xlsx"):
             t = func(file_name_input="/Users/tomerpeker/Downloads/lab_b_1/" + metal_type + "/" + file_name)
+            y_vals = [i[2] / i[3] for i in t]
+            print(metal_type, metal_type, max(y_vals))
+            max_y_vals = max(max_y_vals, max(y_vals))
             plt.scatter(
-                y=[i[2] / i[3] for i in t],
+                y=y_vals,
                 x=[i[3] for i in t],
                 color=color,
                 marker='*',
                 label=metal_type
             )
-handles, labels = plt.gca().get_legend_handles_labels()
-by_label = dict(zip(labels, handles))  # Remove duplicates
-plt.legend(by_label.values(), by_label.keys(), title="Metals", loc="upper right")
-plt.ylim(0, 14)
-plt.xlim(0, 0.05)
+    plt.title(f"{metal_type} - Permeability As a Function of Voltage")
+    plt.ylim(0, max_y_vals+2)
+    plt.show()
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))  # Remove duplicates
+    # plt.legend(by_label.values(), by_label.keys(), title="Metals", loc="upper right")
+    print(metal_type, max_y_vals)
+    plt.close()
 plt.show()
