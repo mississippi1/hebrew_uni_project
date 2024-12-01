@@ -53,7 +53,7 @@ def main():
             frequency_hz = float(folder.split('_')[1].replace('mh', '')) * 1e-3  # Convert '100mh' to Hz
 
             image_files = sorted([f for f in os.listdir(folder_path) if f.endswith('.jpg')])
-            if frequency_hz not in [0.12, 0.1, 0.3]:
+            if frequency_hz not in [0.1, 0.2, 0.4]:
                 continue
             total_frames = len(image_files)
 
@@ -77,6 +77,8 @@ def main():
             plt.xlabel("Voltage (V)")
             plt.ylabel(f"Ratio of (Black - White) Pixels {ALPHA} Magnetization")
             plt.legend()
+            plt.axhline(0, color='black', linewidth=0.8)
+            plt.axvline(0, color='black', linewidth=0.8)
             plt.grid(True)
     plt.title(f"Merged Hysteresis Loops")
     plt.savefig(f"results/Hysteresis Loop, Merged.jpg", dpi=300)

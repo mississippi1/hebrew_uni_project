@@ -79,6 +79,9 @@ def main():
             plt.ylabel(f"Ratio of (Black - White) Pixels {ALPHA} Magnetization")
             plt.legend()
             plt.grid(True)
+            plt.axhline(0, color='black', linewidth=0.8)  # Add y=0 line
+            plt.axvline(0, color='black', linewidth=0.8)  # Add x=0 line
+            plt.title(f"Hysteresis Loop for AC Current {frequency_hz} [H]")
             plt.savefig(f"results/Hysteresis Loop for {frequency_hz}.jpg", dpi=300)
 
 
