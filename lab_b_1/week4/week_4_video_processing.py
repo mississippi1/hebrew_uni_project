@@ -30,10 +30,11 @@ for root, _, files in os.walk(output_base_dir):
             reader = imageio.get_reader(video_path, format='FFMPEG')
             frame_number = 0
 
-            for frame in reader:
-                output_file = os.path.join(video_output_dir, f"frame_{frame_number:04d}.jpg")
-                imageio.imwrite(output_file, frame)
-                print(f"Saved frame {frame_number} of video {video_name}")
+            for idx, frame in enumerate(reader):
+                if idx % 5 == 0:
+                    output_file = os.path.join(video_output_dir, f"frame_{frame_number:04d}.jpg")
+                    imageio.imwrite(output_file, frame)
+                    print(f"Saved frame {frame_number} of video {video_name}")
 
                 frame_number += 1
 
