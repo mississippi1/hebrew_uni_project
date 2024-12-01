@@ -46,13 +46,14 @@ def detect_cycles(dark_to_light_ratios):
 
 
 def main():
+    plt.figure()
     for folder in os.listdir(BASE_PATH):
         folder_path = os.path.join(BASE_PATH, folder)
         if os.path.isdir(folder_path) and "record" in folder:
             frequency_hz = float(folder.split('_')[1].replace('mh', '')) * 1e-3  # Convert '100mh' to Hz
 
             image_files = sorted([f for f in os.listdir(folder_path) if f.endswith('.jpg')])
-            if frequency_hz not in [0.1, 0.12, 0.08, 0.15, 0.3, 0.2]:
+            if frequency_hz not in [0.12, 0.1, 0.3]:
                 continue
             total_frames = len(image_files)
 
@@ -71,15 +72,14 @@ def main():
                 dark_to_light_ratios.append(ratio)
 
             voltages = calculate_voltages(total_frames, frequency_hz, brightest_index)
-
-            plt.figure()
             plt.plot(voltages, dark_to_light_ratios, 'o-', label=f'Frequency {frequency_hz} Hz',
-                     markersize=2, linewidth=0.5, alpha=0.5)
+                     markersize=2, linewidth=1, alpha=0.5)
             plt.xlabel("Voltage (V)")
             plt.ylabel(f"Ratio of (Black - White) Pixels {ALPHA} Magnetization")
             plt.legend()
             plt.grid(True)
-            plt.savefig(f"results/Hysteresis Loop for {frequency_hz}.jpg", dpi=300)
+    plt.title(f"Merged Hysteresis Loops")
+    plt.savefig(f"results/Hysteresis Loop, Merged.jpg", dpi=300)
 
 
 main()
