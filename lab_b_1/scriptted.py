@@ -43,7 +43,7 @@ def func(file_name_input):
                 , color=color)
     plt.xlabel(f'Vx {ALPHA} H (V)')
     plt.ylabel(f'Vc {ALPHA} B (V)')
-    plt.title('Metal 2 and Metal 4 - Hysteresis Loop')
+    # plt.title('Metal 2 and Metal 4 - Hysteresis Loop')
     plt.plot(np.linspace(min(volt_ch1 - 0.3), max(volt_ch1 + 0.3), 250),
              [0 for _ in range(250)]
              , color='black')

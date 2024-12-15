@@ -2,7 +2,8 @@ import os
 import re
 
 # Directory containing the images
-image_dir = "/Users/tomerpeker/hebrew_uni_project/lab_b_1/EX3"  # Update with the path to your directory
+image_dir = "/Users/tomerpeker/Downloads/drive-download-20241208T175842Z-001"
+
 
 def rename_images(image_dir):
     # List all files in the directory
@@ -25,6 +26,7 @@ def rename_images(image_dir):
         new_path = os.path.join(image_dir, new_name)
         os.rename(old_path, new_path)
         print(f"Renamed: {old_name} -> {new_name}")
+
 
 # Run the script
 rename_images(image_dir)

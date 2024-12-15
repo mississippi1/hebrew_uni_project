@@ -3,8 +3,8 @@ import os
 import zipfile
 
 # Specify the zip file containing the AVI videos
-zip_path = "/Users/tomerpeker/Downloads/drive-download-20241127T160402Z-001.zip"
-output_base_dir = "extracted_videos_frames"
+zip_path = "/Users/tomerpeker/Downloads/drive-download-20241208T161911Z-001.zip"
+output_base_dir = "extracted_videos_frames_p2p"
 
 # Create a base output directory
 os.makedirs(output_base_dir, exist_ok=True)
@@ -21,7 +21,7 @@ for root, _, files in os.walk(output_base_dir):
         if file.lower().endswith('.avi'):
             video_path = os.path.join(root, file)
             video_name = os.path.splitext(file)[0]
-
+            print(video_name)
             # Create a specific folder for each video
             video_output_dir = os.path.join(output_base_dir, video_name)
             os.makedirs(video_output_dir, exist_ok=True)

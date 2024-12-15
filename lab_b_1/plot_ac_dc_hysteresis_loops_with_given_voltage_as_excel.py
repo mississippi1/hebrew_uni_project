@@ -6,11 +6,11 @@ import numpy as np
 
 
 ALPHA = "\u03B1"
-IMAGE_INDICES = list(range(219, 240)) + list(range(241, 252)) + list(range(405, 454))
+IMAGE_INDICES = list(range(1, 101))
 
 # VOLTAGE_MAP = pd.read_excel("/Users/tomerpeker/Downloads/הצמדה בין שם תמונה למתח.xlsx")
 
-VOLTAGE_MAP = pd.read_excel('/Users/tomerpeker/Downloads/הצמדה בין שם תמונה למתח_1.xlsx')
+VOLTAGE_MAP = pd.read_excel('/Users/tomerpeker/Downloads/הצמדת מתחים פריימים 100 מיליהרץ.xlsx')
 
 
 def assign_images_to_voltages(image_indices):
@@ -26,22 +26,24 @@ def count_black_pixels(image_path):
         with Image.open(image_path) as img:
             grayscale = img.convert("L")
             # grayscale.save("grayscale_"+image_path+".jpg")
-            whites = np.sum(np.array(grayscale) > 45)
-            blacks = (np.sum(np.array(grayscale) <= 45))
+            whites = np.sum(np.array(grayscale) > 80)
+            blacks = (np.sum(np.array(grayscale) <= 80))
             ratio = (whites - blacks) / (blacks + whites)
             black_pixel_count = ratio
+            if image_path.endswith("233.jpg"):
+                print(black_pixel_count, whites)
         return black_pixel_count
     except FileNotFoundError:
         print(f"Image not found: {image_path}")
         return None
 
 
-def process_images(image_indices_input, image_dir):
+def process_images(image_indices_input, image_dir, results_folder):
     image_voltage_map = assign_images_to_voltages(image_indices_input)
     black_pixel_counts = []
     voltages = []
     for image_index in image_indices_input:
-        image_path = os.path.join(image_dir, f"Capture_{str(image_index)}.jpg")
+        image_path = os.path.join(image_dir, f"image_{str(image_index)}.jpg")
         black_pixels = count_black_pixels(image_path)
         if black_pixels is not None:
             black_pixel_counts.append(black_pixels)
@@ -49,17 +51,17 @@ def process_images(image_indices_input, image_dir):
     plt.figure(figsize=(10, 6))
     plt.scatter(voltages, black_pixel_counts, c="blue", alpha=0.7, s=5)
     plt.plot(voltages, black_pixel_counts, c="purple", alpha=0.6)
-    plt.title("Hysteresis Loop, from Domains - DC")
+    plt.title("Dark and Light Pixels as a function of Voltage")
     plt.xlabel(f"Voltage {ALPHA} H (V)")
-    plt.ylabel(f"M - Ratio between Dark and Light {ALPHA} Magnetization")
+    plt.ylabel(f"Ratio between Dark and Light {ALPHA} Magnetization")
     plt.axhline(0, color='black', linewidth=1, linestyle='-')  # Horizontal line at y=0
     plt.axvline(0, color='black', linewidth=1, linestyle='-')  # Vertical line at x=0
     plt.grid(True)
-    # plt.savefig("/Users/tomerpeker/hebrew_uni_project/lab_b_1/images/dark_and_light.png")
+    plt.savefig(results_folder)
     plt.show()
 
 
-image_dir_const = "/Users/tomerpeker/Downloads/drive-download-20241208T175842Z-001"
-
-# Run the script
-process_images(IMAGE_INDICES, image_dir_const)
+for type_ in ["coil", "hysteresis_loop_ac_dc"]:
+    image_dir_const = f"/Users/tomerpeker/hebrew_uni_project/week_5/{type_}"
+    # Run the script
+    process_images(IMAGE_INDICES, image_dir_const, results_folder=f"/Users/tomerpeker/hebrew_uni_project/lab_b_1/images/{type_}.png")

@@ -2,6 +2,9 @@ import os
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
+from scipy.integrate import simpson
+from numpy import trapz
+
 
 
 ALPHA = "\u03B1"
@@ -9,6 +12,7 @@ FPS = 5
 MAX_VOLTAGE = 5
 MIN_VOLTAGE = -5
 BASE_PATH = "/users/tomerpeker/hebrew_uni_project/lab_b_1/week4/extracted_videos_frames"
+color_map = {0.1: "blue", 0.2: "green", 0.4: "red"}
 
 
 def count_pixels(image_path):
@@ -32,56 +36,87 @@ def calculate_voltages(total_frames, frequency, brightest_index):
             current_voltage = MAX_VOLTAGE - (relative_index / (frames_per_cycle / 2)) * voltage_range
         else:
             current_voltage = MIN_VOLTAGE + (
-                        (relative_index - frames_per_cycle / 2) / (frames_per_cycle / 2)) * voltage_range
+                    (relative_index - frames_per_cycle / 2) / (frames_per_cycle / 2)) * voltage_range
         voltages.append(current_voltage)
 
     return voltages
 
 
-def detect_cycles(dark_to_light_ratios):
-    from scipy.signal import find_peaks
-    peaks, _ = find_peaks(dark_to_light_ratios, height=0)
-    troughs, _ = find_peaks(-1 * np.array(dark_to_light_ratios), height=0)
-    return peaks, troughs
+def detect_intersections_and_extrema(voltages, dark_to_light_ratios):
+    # Find intersections with axes and extrema of the hysteresis loop
+    intersections = [(v, m) for v, m in zip(voltages, dark_to_light_ratios) if np.isclose(m, 0, atol=0.2)]
+    max_point = max(zip(voltages, dark_to_light_ratios), key=lambda x: x[1])  # Top-right point
+    min_point = min(zip(voltages, dark_to_light_ratios), key=lambda x: x[1])  # Bottom-left point
+    return intersections, max_point, min_point
+
+
+def calculate_hysteresis_area(voltage, magnetization):
+    # Ensure the data forms a closed loop
+    if not (voltage[0] == voltage[-1] and magnetization[0] == magnetization[-1]):
+        voltage = np.append(voltage, voltage[0])
+        magnetization = np.append(magnetization, magnetization[0])
+
+    # Use Simpson's rule to calculate the enclosed area
+    area = simpson(y=magnetization, x=voltage)
+    return abs(area), trapz(x=voltage, y=magnetization)
 
 
 def main():
-    plt.figure()
-    for folder in os.listdir(BASE_PATH):
+    folders = [folder for folder in os.listdir(BASE_PATH)
+               if os.path.isdir(os.path.join(BASE_PATH, folder))
+               and "record" in folder
+               and "vpp" in folder]
+    folders = sorted(folders)  # Sort folders for consistent subplot arrangement
+
+    frequencies_to_plot = [0.1, 0.2, 0.4]
+    figure, axes = plt.subplots(2, 2, figsize=(12, 10))
+    axes = axes.flatten()
+
+    all_extrema = []  # Store extrema for the 4th plot
+
+    for i, folder in enumerate(folders):
         folder_path = os.path.join(BASE_PATH, folder)
-        if os.path.isdir(folder_path) and "record" in folder:
-            frequency_hz = float(folder.split('_')[1].replace('mh', '')) * 1e-3  # Convert '100mh' to Hz
+        frequency_hz = float(folder.split('_')[1].replace('mh', '')) * 1e-3  # Convert 'record_100mh' to Hz
+        if frequency_hz not in frequencies_to_plot:
+            continue
 
-            image_files = sorted([f for f in os.listdir(folder_path) if f.endswith('.jpg')])
-            if frequency_hz not in [0.1, 0.2, 0.4]:
-                continue
-            total_frames = len(image_files)
+        image_files = sorted([f for f in os.listdir(folder_path) if f.endswith('.jpg')])
+        total_frames = len(image_files)
 
-            brightest_index = 0
-            max_black_pixels = 0
-            for i, image_file in enumerate(image_files):
-                black_pixels, white_pixels = count_pixels(os.path.join(folder_path, image_file))
-                if black_pixels > max_black_pixels:
-                    max_black_pixels = black_pixels
-                    brightest_index = i
+        # Find the brightest frame
+        brightest_index = 0
+        max_black_pixels = 0
+        for i, image_file in enumerate(image_files):
+            black_pixels, white_pixels = count_pixels(os.path.join(folder_path, image_file))
+            if black_pixels > max_black_pixels:
+                max_black_pixels = black_pixels
+                brightest_index = i
 
-            dark_to_light_ratios = []
-            for image_file in image_files:
-                black_pixels, white_pixels = count_pixels(os.path.join(folder_path, image_file))
-                ratio = (black_pixels - white_pixels) / (black_pixels + white_pixels)
-                dark_to_light_ratios.append(ratio)
+        # Compute dark-to-light ratios
+        dark_to_light_ratios = []
+        for image_file in image_files:
+            black_pixels, white_pixels = count_pixels(os.path.join(folder_path, image_file))
+            ratio = (black_pixels - white_pixels) / (black_pixels + white_pixels)
+            dark_to_light_ratios.append(ratio)
 
-            voltages = calculate_voltages(total_frames, frequency_hz, brightest_index)
-            plt.plot(voltages, dark_to_light_ratios, 'o-', label=f'Frequency {frequency_hz} Hz',
-                     markersize=2, linewidth=1, alpha=0.5)
-            plt.xlabel("Voltage (V)")
-            plt.ylabel(f"Ratio of (Black - White) Pixels {ALPHA} Magnetization")
-            plt.legend()
-            plt.axhline(0, color='black', linewidth=0.8)
-            plt.axvline(0, color='black', linewidth=0.8)
-            plt.grid(True)
-    plt.title(f"Merged Hysteresis Loops")
-    plt.savefig(f"results/Hysteresis Loop, Merged.jpg", dpi=300)
+        # Calculate voltages
+        voltages = calculate_voltages(total_frames, frequency_hz, brightest_index)
+        print(frequency_hz, calculate_hysteresis_area(voltage=voltages, magnetization=dark_to_light_ratios))
+        # Plot each frequency's hysteresis loop in a separate subplot
+        ax = axes[frequencies_to_plot.index(frequency_hz)]
+        ax.plot(voltages, dark_to_light_ratios, 'o-', label=f'Frequency {frequency_hz} Hz', markersize=2, linewidth=1, alpha=0.5,
+                color=color_map[frequency_hz])
+        ax.set_xlabel("Voltage (V)")
+        ax.set_ylabel(f"M - Ratio of (Black - White) Pixels {ALPHA} Magnetization")
+        ax.legend()
+        ax.axhline(0, color='black', linewidth=0.8)
+        ax.axvline(0, color='black', linewidth=0.8)
+        ax.grid(True)
+        ax.set_title(f"Hysteresis Loop - {frequency_hz} Hz")
+
+    plt.tight_layout()
+    plt.savefig("results/Hysteresis_Loop_Subplots.jpg", dpi=300)
+    plt.show()
 
 
 main()

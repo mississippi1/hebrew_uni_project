@@ -6,11 +6,11 @@ import numpy as np
 
 
 ALPHA = "\u03B1"
-IMAGE_INDICES = list(range(219, 240)) + list(range(241, 252)) + list(range(405, 454))
+IMAGE_INDICES = list(range(1, 101))
 
 # VOLTAGE_MAP = pd.read_excel("/Users/tomerpeker/Downloads/הצמדה בין שם תמונה למתח.xlsx")
 
-VOLTAGE_MAP = pd.read_excel('/Users/tomerpeker/Downloads/הצמדה בין שם תמונה למתח_1.xlsx')
+VOLTAGE_MAP = pd.read_excel('/Users/tomerpeker/Downloads/coil_voltage.xlsx')
 
 
 def assign_images_to_voltages(image_indices):
@@ -26,8 +26,8 @@ def count_black_pixels(image_path):
         with Image.open(image_path) as img:
             grayscale = img.convert("L")
             # grayscale.save("grayscale_"+image_path+".jpg")
-            whites = np.sum(np.array(grayscale) > 45)
-            blacks = (np.sum(np.array(grayscale) <= 45))
+            whites = np.sum(np.array(grayscale) < 80)
+            blacks = (np.sum(np.array(grayscale) > 80))
             ratio = (whites - blacks) / (blacks + whites)
             black_pixel_count = ratio
         return black_pixel_count
@@ -41,11 +41,12 @@ def process_images(image_indices_input, image_dir):
     black_pixel_counts = []
     voltages = []
     for image_index in image_indices_input:
-        image_path = os.path.join(image_dir, f"Capture_{str(image_index)}.jpg")
+        image_path = os.path.join(image_dir, f"image_{str(image_index)}.jpg")
         black_pixels = count_black_pixels(image_path)
         if black_pixels is not None:
             black_pixel_counts.append(black_pixels)
             voltages.append(image_voltage_map[image_index])
+    print(list(zip(voltages, black_pixel_counts)))
     plt.figure(figsize=(10, 6))
     plt.scatter(voltages, black_pixel_counts, c="blue", alpha=0.7, s=5)
     plt.plot(voltages, black_pixel_counts, c="purple", alpha=0.6)
@@ -59,7 +60,7 @@ def process_images(image_indices_input, image_dir):
     plt.show()
 
 
-image_dir_const = "/Users/tomerpeker/Downloads/drive-download-20241208T175842Z-001"
+image_dir_const = "/Users/tomerpeker/hebrew_uni_project/week_5/coil"
 
 # Run the script
 process_images(IMAGE_INDICES, image_dir_const)

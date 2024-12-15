@@ -51,7 +51,6 @@ def main(base_path):
     for folder in os.listdir(base_path):
         folder_path = os.path.join(BASE_PATH, folder)
         if os.path.isdir(folder_path) and "record" in folder:
-            results = []
             print(folder)
             frequency_hz = determine_frequency(folder)
             min_voltage, max_voltage = determine_min_max_voltage(folder=folder)
@@ -73,17 +72,11 @@ def main(base_path):
                 error = std_dev / (black_pixels + white_pixels)  # Error in the ratio
                 dark_to_light_ratios.append(ratio)
                 std_errors.append(error)
-                results.append({"frequency": frequency_hz, "std_dev": std_dev})
-
+            print(f"Raw Pixel Standard Deviation for Frequency {frequency_hz}: {max(std_errors)}")
             voltages = calculate_voltages(total_frames, frequency_hz, brightest_index, max_voltage=max_voltage,
                                           min_voltage=min_voltage)
-            raw_std_dev = np.std([np.array(Image.open(os.path.join(folder_path, image_file)).convert('L'))
-                                  for image_file in image_files])
-            print(f"Raw Pixel Standard Deviation for Frequency {frequency_hz}: {raw_std_dev}")
-            with open("results/histogram_std_dev.txt", "w+") as f:
-                for result in results:
-                    f.write(f"Frequency: {result['frequency']} Hz, Std Dev: {result['std_dev']:.2f}\n")
-                f.write(f"Frequency: {frequency_hz} Hz, Std Dev: {raw_std_dev:.2f}\n")
+
+            # Plot Hysteresis with Error Bars
             plt.figure()
             plt.errorbar(voltages, dark_to_light_ratios, yerr=std_errors, fmt='o-', label=f'Frequency {frequency_hz} Hz',
                          markersize=2, linewidth=0.5, alpha=0.5, capsize=2)

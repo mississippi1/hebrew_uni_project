@@ -13,7 +13,7 @@ BASE_PATH = "/users/tomerpeker/hebrew_uni_project/lab_b_1/week4/extracted_videos
 def count_pixels(image_path):
     img = Image.open(image_path).convert('L')
     img_array = np.array(img)
-    black_pixels = np.sum(img_array < 80)
+    black_pixels = np.sum(img_array < 60)
     white_pixels = np.sum(img_array > 80)
     return black_pixels, white_pixels
 
@@ -51,7 +51,7 @@ def main():
         if os.path.isdir(folder_path) and "record" in folder:
             # Extract frequency from folder name
             frequency_hz = float(
-                folder.split('_')[1].replace('mh', '').replace('1h', '1000')) * 1e-3  # Convert '100mh' to Hz
+                folder.split('_')[1].replace('mh', '').replace('1h', '1000')) * 1e-3  # Convert 'record_100mh' to Hz
 
             image_files = sorted([f for f in os.listdir(folder_path) if f.endswith('.jpg')])
             total_frames = len(image_files)
