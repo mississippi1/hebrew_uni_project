@@ -8,7 +8,7 @@ ALPHA = "\u03B1"
 FPS = 5
 MAX_VOLTAGE = 5
 MIN_VOLTAGE = -5
-BASE_PATH = "/Users/tomerpeker/hebrew_uni_project/week_5/hysteresis_loop_ac_dc"
+BASE_PATH = "/lab_b_1/week_5/hysteresis_loop_ac_dc"
 
 
 def count_pixels(image_path):

@@ -60,7 +60,7 @@ def process_images(image_indices_input, image_dir):
     plt.show()
 
 
-image_dir_const = "/Users/tomerpeker/hebrew_uni_project/week_5/coil"
+image_dir_const = "/lab_b_1/week_5/coil"
 
 # Run the script
 process_images(IMAGE_INDICES, image_dir_const)

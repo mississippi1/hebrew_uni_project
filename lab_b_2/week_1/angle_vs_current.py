@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
@@ -22,23 +23,21 @@ def plot_current_with_errorbars(file_path, exp_type):
     max_current = data['Current (A)'].max()
 
     # Prepare data for plotting
-    frequencies = [float(frequency)]  # Single frequency as a list
+    frequencies = [float(frequency)/360*2*np.pi]  # Single frequency as a list
     averages = [avg_current]
     error_bars = [[avg_current - min_current], [max_current - avg_current]]
     # Plotting
     if float(frequency) == 0:
-        plt.errorbar(frequencies, averages, yerr=error_bars, xerr=2,
-                     fmt='o', color=COLOR_MAP[exp_type], label=exp_type)
+        plt.errorbar(frequencies, averages, yerr=error_bars, xerr=float(2)/360*2*np.pi, markersize=2,
+                     fmt='o', color=COLOR_MAP[exp_type])
     else:
-        plt.errorbar(frequencies, averages, yerr=error_bars, xerr=2,
+        plt.errorbar(frequencies, averages, yerr=error_bars, xerr=float(2)/360*2*np.pi, markersize=2,
                      fmt='o', color=COLOR_MAP[exp_type])
     plt.title(f'Average Current vs Angle')
     plt.xlabel('Angle')
     plt.ylabel('Current (A)')
-    plt.axhline(color="black")
-    plt.axvline(color="black")
-    plt.xlim((0, 180))
-    plt.ylim((0, 0.0002))
+    # plt.xlim((0, 3.5))
+    # plt.ylim((0, 0.0002))
     plt.legend()
     plt.grid(True)
 
@@ -53,4 +52,4 @@ for exp_type in ["Two Different Polarizes", "Three Different Polarizes"]:
             print(f"Could not parse as number the file name {file}")
             continue
         plot_current_with_errorbars(base_path+file, exp_type)
-plt.show()
+    plt.show()
