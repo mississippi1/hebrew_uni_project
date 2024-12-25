@@ -58,7 +58,7 @@ def calculate_hysteresis_area(voltage, magnetization):
 
     # Use Simpson's rule to calculate the enclosed area
     area = simpson(y=magnetization, x=voltage)
-    return abs(area), trapz(x=voltage, y=magnetization)
+    return abs(area), trapz(x=voltage, y=magnetization), "error - " + str(abs(area) - abs(trapz(x=voltage, y=magnetization)))
 
 
 def main():
@@ -101,16 +101,27 @@ def main():
 
         # Calculate voltages
         voltages = calculate_voltages(total_frames, frequency_hz, brightest_index)
-        print(frequency_hz, calculate_hysteresis_area(voltage=voltages, magnetization=dark_to_light_ratios))
-        # Plot each frequency's hysteresis loop in a separate subplot
+
+        # Calculate area and error
+        area, _, _ = calculate_hysteresis_area(voltage=voltages, magnetization=dark_to_light_ratios)
+
+        # Calculate errors
+        x_error = [4*frequency_hz] * len(voltages)  # Error in x-axis (half the frequency)
+
+        # Plot error bars instead of a simple line plot
         ax = axes[frequencies_to_plot.index(frequency_hz)]
-        ax.plot(voltages, dark_to_light_ratios, 'o-', label=f'Frequency {frequency_hz} Hz', markersize=2, linewidth=1, alpha=0.5,
+        ax.errorbar(voltages, dark_to_light_ratios, xerr=x_error, fmt='o',
+                    markersize=2, linewidth=1, alpha=0.5, color=color_map[frequency_hz])
+        ax.plot(voltages, dark_to_light_ratios, 'o-', markersize=2, linewidth=1,
+                alpha=0.5,
                 color=color_map[frequency_hz])
+
+        # Add labels and titles
         ax.set_xlabel("Voltage (V)")
         ax.set_ylabel(f"M - Ratio of (Black - White) Pixels {ALPHA} Magnetization")
         ax.legend()
-        ax.axhline(0, color='black', linewidth=0.8)
-        ax.axvline(0, color='black', linewidth=0.8)
+        ax.axhline(0, color='black', linewidth=0.8)  # Horizontal line at y=0
+        ax.axvline(0, color='black', linewidth=0.8)  # Vertical line at x=0
         ax.grid(True)
         ax.set_title(f"Hysteresis Loop - {frequency_hz} Hz")
 

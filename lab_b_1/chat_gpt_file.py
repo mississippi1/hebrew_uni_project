@@ -15,6 +15,10 @@ BASE_PATH = "/users/tomerpeker/hebrew_uni_project/lab_b_1/week4/extracted_videos
 def count_pixels(image_path):
     img = Image.open(image_path).convert('L')  # Convert to grayscale
     img_array = np.array(img)
+    print(img_array)
+    plt.hist(img_array.flatten(), bins=256)
+    plt.xlim(0, 256)
+    plt.show()
     black_pixels = np.sum(img_array < 100)
     white_pixels = np.sum(img_array > 100)
     std_dev = np.std(img_array)  # Standard deviation of pixel intensities
@@ -47,6 +51,9 @@ def determine_frequency(folder):
     return float(folder.split('_')[1].replace('mh', '')) * 1e-3  # Convert 'record_100mh' to Hz
 
 
+black_count = []
+
+
 def main(base_path):
     for folder in os.listdir(base_path):
         folder_path = os.path.join(BASE_PATH, folder)
@@ -74,12 +81,18 @@ def main(base_path):
                 dark_to_light_ratios.append(ratio)
                 std_errors.append(error)
                 results.append({"frequency": frequency_hz, "std_dev": std_dev})
-
+                black_count.append(black_pixels)
             voltages = calculate_voltages(total_frames, frequency_hz, brightest_index, max_voltage=max_voltage,
                                           min_voltage=min_voltage)
             raw_std_dev = np.std([np.array(Image.open(os.path.join(folder_path, image_file)).convert('L'))
                                   for image_file in image_files])
             print(f"Raw Pixel Standard Deviation for Frequency {frequency_hz}: {raw_std_dev}")
+            plt.figure()
+            plt.hist(black_count, bins=100)
+            plt.savefig(f"results/histogram_count_up_to_{result['std_dev']:.2f}.jpg",
+                        dpi=300)
+            plt.close()
+
             with open("results/histogram_std_dev.txt", "w+") as f:
                 for result in results:
                     f.write(f"Frequency: {result['frequency']} Hz, Std Dev: {result['std_dev']:.2f}\n")
@@ -99,5 +112,13 @@ def main(base_path):
             plt.close()
 
 
-for path_ in [BASE_PATH, BASE_PATH+"/old"]:
+for inx, path_ in enumerate([BASE_PATH, BASE_PATH+"/old"]):
+    print(f"indx {inx}, out of {len(os.listdir(BASE_PATH))}")
     main(base_path=path_)
+
+
+plt.figure()
+plt.hist(black_count, bins=100)
+plt.savefig(f"results/histogram_count_all.jpg",
+            dpi=300)
+plt.close()
