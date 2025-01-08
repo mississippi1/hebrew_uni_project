@@ -4,12 +4,6 @@ import matplotlib.pyplot as plt
 import os
 from raw_data.calculate_std_from_baseline import calculate_std_for_baseline
 
-# Function to process the Excel file
-QUARTER_WAVE = "quarter_wave"
-HALF_WAVE = "half_wave"
-plt.rcParams['font.size'] = 16  # Set default size
-
-
 def modify_errorbars(angles, averages):
     error_bars = []
     for angle in angles:
@@ -19,7 +13,6 @@ def modify_errorbars(angles, averages):
             error_bars.append(np.cos(angle1) ** 2 / np.cos(angle1 + two_degrees_in_rad) ** 2)
         else:
             error_bars.append(np.cos(angle1 + two_degrees_in_rad) ** 2 / np.cos(angle1) ** 2)
-    print(np.array(error_bars) * np.array(averages) - averages)
     return abs(np.array(averages)*1.0278) - np.array(averages)
 
 
@@ -45,33 +38,43 @@ def plot_current_with_errorbars(file_path, exp_type_):
             raise ValueError("Expected column 'Current (A)' not found in the Excel file.")
 
         # Calculate statistics for current
-        avg_current = data['Current (A)'].mean()*1_000
-        min_current = data['Current (A)'].min()*1_000
-        max_current = data['Current (A)'].max()*1_000
-
+        avg_current = data['Current (A)'].mean()
+        min_current = data['Current (A)'].min()
+        max_current = data['Current (A)'].max()
         # Prepare data for plotting
-        if float(frequency) < 90:
-            angles += [float(frequency) + 90]  # Single frequency as a list
-        else:
-            angles += [float(frequency) - 90]  # Single frequency as a list
+        # if float(frequency) < 90:
+        angles += [float(frequency)]  # Single frequency as a list
+        # else:
+        #     angles += [float(frequency) - 90]  # Single frequency as a list
         averages += [avg_current]
         error_bars[0].append(avg_current - min_current)  # Lower error
         error_bars[1].append(max_current - avg_current)  # Upper error
         # Plotting
-    if exp_type_ == HALF_WAVE:
-        error_bars = modify_errorbars(angles=angles, averages=averages)
-    print(len(averages), len(error_bars))
-    plt.errorbar(angles, averages, yerr=error_bars, xerr=float(2), markersize=2,
-                 fmt='o', color=COLOR_MAP[exp_type_])
 
     plt.xlabel('Angle (deg)')
-    plt.ylabel('I (mA)')
+    plt.ylabel('I (A)')
     plt.ylim(0, max(averages)*1.1)
     plt.legend()
     plt.grid(True)
+    plt.errorbar(angles, averages, yerr=error_bars, xerr=float(1), markersize=2,
+                 fmt='o', color=COLOR_MAP[exp_type_])
+    return angles
 
-    if exp_type_ == QUARTER_WAVE:
-        calculate_fit(angles=angles, averages=averages)
+
+def get_rp_prediction(angles, baseline_light_power, n2):
+    angles_in_rad = sorted(np.array(angles) / 360 * 2 * np.pi)
+    nominator = (n2 * np.cos(angles_in_rad) - np.sqrt(1 - (np.sin(angles_in_rad) / n2) ** 2))
+    denominator = (n2 * np.cos(angles_in_rad) + np.sqrt(1 - (np.sin(angles_in_rad) / n2) ** 2))
+    expected_values = (nominator / denominator) ** 2 * baseline_light_power
+    return expected_values
+
+
+def get_rs_prediction(angles, baseline_light_power, n2):
+    angles_in_rad = sorted(np.array(angles) / 360 * 2 * np.pi)
+    nominator = (np.cos(angles_in_rad) - n2 * np.sqrt(1 - (np.sin(angles_in_rad) / n2) ** 2))
+    denominator = (np.cos(angles_in_rad) + n2 * np.sqrt(1 - (np.sin(angles_in_rad) / n2) ** 2))
+    expected_values = (nominator / denominator) ** 2 * baseline_light_power
+    return expected_values
 
 
 def calculate_fit(angles, averages):
@@ -108,8 +111,19 @@ def calculate_fit(angles, averages):
     plt.legend()
 
 
-COLOR_MAP = {HALF_WAVE: "blue", QUARTER_WAVE: "green"}
-for exp_type in [HALF_WAVE, QUARTER_WAVE]:
-    base_path = f"../week_2/raw_data/{exp_type}/"
-    plot_current_with_errorbars(base_path, exp_type)
-    plt.show()
+COLOR_MAP = {"brewster_p": "blue", "brewster_s": "green"}
+for exp_type in ["brewster_p", "brewster_s"]:
+    base_path = f"raw_data/{exp_type}/"
+    print(base_path)
+    angles_ = plot_current_with_errorbars(base_path, exp_type)
+
+for n2 in [143, 147, 151]:
+    n2 = n2/100
+    baseline_light_power = 9.44*10**-5
+    rp_prediction = get_rp_prediction(angles_, baseline_light_power, n2)
+    rs_prediction = get_rs_prediction(angles_, baseline_light_power, n2)
+    if n2 == 1.47:
+        plt.plot(sorted(angles_), rp_prediction, label=f"Reflected Intensity P - {n2}")
+    plt.plot(sorted(angles_), rs_prediction, label=f"Reflected Intensity S - {n2}")
+    plt.legend()
+plt.show()

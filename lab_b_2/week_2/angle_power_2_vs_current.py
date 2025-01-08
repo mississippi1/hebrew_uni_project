@@ -45,7 +45,7 @@ def plot_current_with_errorbars(exp_type):
     else:
         plt.errorbar(frequencies, averages, markersize=2,
                      fmt='o', color=COLOR_MAP[exp_type])
-    plt.title(f'Average Current vs Angle')
+    plt.title(f't vs Angle')
     plt.xlabel('Cos^2(Angle)')
     plt.ylabel('Current (A)')
     plt.legend()

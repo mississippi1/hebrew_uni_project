@@ -7,7 +7,6 @@ from raw_data.calculate_std_from_baseline import calculate_std_for_baseline
 # Function to process the Excel file
 QUARTER_WAVE = "quarter_wave"
 HALF_WAVE = "half_wave"
-plt.rcParams['font.size'] = 16  # Set default size
 
 
 def modify_errorbars(angles, averages):
@@ -19,7 +18,6 @@ def modify_errorbars(angles, averages):
             error_bars.append(np.cos(angle1) ** 2 / np.cos(angle1 + two_degrees_in_rad) ** 2)
         else:
             error_bars.append(np.cos(angle1 + two_degrees_in_rad) ** 2 / np.cos(angle1) ** 2)
-    print(np.array(error_bars) * np.array(averages) - averages)
     return abs(np.array(averages)*1.0278) - np.array(averages)
 
 
@@ -48,19 +46,23 @@ def plot_current_with_errorbars(file_path, exp_type_):
         avg_current = data['Current (A)'].mean()*1_000
         min_current = data['Current (A)'].min()*1_000
         max_current = data['Current (A)'].max()*1_000
-
         # Prepare data for plotting
-        if float(frequency) < 90:
-            angles += [float(frequency) + 90]  # Single frequency as a list
+        if float(frequency) < 45:
+            angles += [float(frequency) + 45]  # Single frequency as a list
         else:
-            angles += [float(frequency) - 90]  # Single frequency as a list
+            angles += [float(frequency) - 45]  # Single frequency as a list
         averages += [avg_current]
         error_bars[0].append(avg_current - min_current)  # Lower error
         error_bars[1].append(max_current - avg_current)  # Upper error
         # Plotting
+    I0 = 1.34*10**-1
+    angles_in_rad = sorted(np.array(angles)/360*2*np.pi)
+    print(angles_in_rad)
+    expected = I0*np.cos(2*np.array(angles_in_rad))**2
+    print(expected)
+    plt.plot(sorted(angles), expected)
     if exp_type_ == HALF_WAVE:
         error_bars = modify_errorbars(angles=angles, averages=averages)
-    print(len(averages), len(error_bars))
     plt.errorbar(angles, averages, yerr=error_bars, xerr=float(2), markersize=2,
                  fmt='o', color=COLOR_MAP[exp_type_])
 
@@ -110,6 +112,7 @@ def calculate_fit(angles, averages):
 
 COLOR_MAP = {HALF_WAVE: "blue", QUARTER_WAVE: "green"}
 for exp_type in [HALF_WAVE, QUARTER_WAVE]:
-    base_path = f"../week_2/raw_data/{exp_type}/"
+    base_path = f"raw_data/{exp_type}/"
+    print(base_path)
     plot_current_with_errorbars(base_path, exp_type)
     plt.show()

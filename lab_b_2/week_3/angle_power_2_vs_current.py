@@ -3,7 +3,6 @@ from numpy import polyfit
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-plt.rcParams['font.size'] = 14  # Set default size
 
 
 # Function to process the Excel file
@@ -31,9 +30,9 @@ def plot_current_with_errorbars(exp_type):
             raise ValueError("Expected column 'Current (A)' not found in the Excel file.")
 
         # Calculate statistics for current
-        avg_current = data['Current (A)'].mean()*1_000
-        min_current = data['Current (A)'].min()*1_000
-        max_current = data['Current (A)'].max()*1_000
+        avg_current = data['Current (A)'].mean()
+        min_current = data['Current (A)'].min()
+        max_current = data['Current (A)'].max()
 
         # Prepare data for plotting
         frequencies += [(np.cos(float(frequency)/360*2*np.pi))**2]  # Single frequency as a list
@@ -46,9 +45,9 @@ def plot_current_with_errorbars(exp_type):
     else:
         plt.errorbar(frequencies, averages, markersize=2,
                      fmt='o', color=COLOR_MAP[exp_type])
-    # plt.title(f'Average Current vs Angle')
-    plt.xlabel('Cos^2 (Angle)')
-    plt.ylabel('Current (צA)')
+    plt.title(f'Average Current vs Angle')
+    plt.xlabel('Cos^2(Angle)')
+    plt.ylabel('Current (A)')
     plt.legend()
     plt.grid(True)
 
