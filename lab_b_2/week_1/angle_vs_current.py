@@ -30,10 +30,12 @@ def plot_current_with_errorbars(file_path, exp_type):
     error_bars = [[avg_current - min_current], [max_current - avg_current]]
     # Plotting
     if float(frequency) == 0:
-        plt.errorbar(frequencies, averages, yerr=error_bars, xerr=float(2)/360*2*np.pi, markersize=2,
+        plt.errorbar(frequencies, averages, yerr=error_bars,
+                     xerr=float(2)/360*2*np.pi, markersize=4,
                      fmt='o', color=COLOR_MAP[exp_type])
     else:
-        plt.errorbar(frequencies, averages, yerr=error_bars, xerr=float(2)/360*2*np.pi, markersize=2,
+        plt.errorbar(frequencies, averages, yerr=error_bars, xerr=float(2)/360*2*np.pi,
+                     markersize=4,
                      fmt='o', color=COLOR_MAP[exp_type])
     # plt.title(f'Average Current vs Angle')
     plt.xlabel('Angle')
