@@ -1,0 +1,111 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+from calculate_std_from_baseline import calculate_std_for_baseline
+# Function to process the Excel file
+
+
+def modify_errorbars(angles, averages):
+    error_bars = []
+    for angle in angles:
+        angle1 = (angle/360*2*np.pi)
+        two_degrees_in_rad = (2 / 360 * 2 * np.pi)
+        if angle1 < np.pi/2:
+            error_bars.append(np.cos(angle1) ** 2 / np.cos(angle1 + two_degrees_in_rad) ** 2)
+        else:
+            error_bars.append(np.cos(angle1 + two_degrees_in_rad) ** 2 / np.cos(angle1) ** 2)
+    return abs(np.array(averages)*1.0278) - np.array(averages)
+
+
+def plot_current_with_errorbars(file_path, exp_type_):
+    angles = []
+    averages = []
+    plt.rcParams['font.size'] = 16  # Set default size
+    error_bars = [[], []]  # Two rows: lower and upper errors
+    base_path_ = file_path
+    for file_ in os.listdir(base_path_):
+        try:
+            int(file_[:file_.find(".")])
+        except ValueError:
+            print(f"Could not parse as number the file name {file_}")
+            continue
+        file_path = base_path_ + file_
+        frequency = os.path.splitext(os.path.basename(file_path))[0]  # File name without extension
+
+        data = pd.read_excel(file_path, skiprows=5)
+
+        # Ensure the data is clean and the relevant columns exist
+        if 'Current (A)' not in data.columns:
+            raise ValueError("Expected column 'Current (A)' not found in the Excel file.")
+
+        # Calculate statistics for current
+        avg_current = data['Current (A)'].mean()*1_000
+        min_current = data['Current (A)'].min()*1_000
+        max_current = data['Current (A)'].max()*1_000
+        # Prepare data for plotting
+
+        angles += [float(frequency) + 45]  # Single frequency as a list
+        # TODO: Think if the error calculation is OK and if the angles should be transformed
+        averages += [avg_current]
+        error_bars[0].append(avg_current - min_current)  # Lower error
+        error_bars[1].append(max_current - avg_current)  # Upper error
+        # Plotting
+
+    error_bars = modify_errorbars(angles=angles, averages=averages)
+    plt.errorbar(angles, averages, yerr=error_bars, markersize=2,
+                 fmt='o')
+
+    plt.xlabel('Angle (deg)')
+    plt.ylabel('I (mA)')
+    plt.ylim(0, max(averages)*1.5)
+    plt.legend()
+    plt.grid(True)
+
+    # if exp_type_ == FIRST_EXPERIMENT:
+    #     calculate_fit(angles=angles, averages=averages, std_for_baseline=std_for_baseline)
+
+
+def calculate_fit(angles, averages, std_for_baseline):
+    # Data example
+    x = angles  # Replace with your actual x-axis data
+    y = averages  # Replace with your actual y-axis data
+
+    # Compute linear fit
+    coefficients = np.polyfit(x, y, 0)  # Linear fit (degree=1)
+    upper_bound = (1 + std_for_baseline)
+    lower_bound = (1 - std_for_baseline)
+    fit_equation = (f"y = {coefficients[0]:.3e}, "
+                    f"y_s = {coefficients[0] * upper_bound:.3e}, "
+                    f"y_i = {coefficients[0] * lower_bound:.3e}")
+    plt.plot(x,
+             [coefficients.mean() for _ in range(len(x))],
+             color='red',
+             linestyle='--',
+             label=f"y = {coefficients[0]:.3e}")
+    plt.plot(x,
+             [coefficients.mean() * upper_bound for _ in range(len(x))],
+             color='blue',
+             linestyle='--',
+             alpha=0.5,
+             label=f"y_s = {coefficients[0] * upper_bound:.3e}")
+    plt.plot(x,
+             [coefficients.mean() * lower_bound for _ in range(len(x))],
+             color='blue',
+             linestyle='--',
+             alpha=0.5,
+             label=f"y_s = {coefficients[0] * lower_bound:.3e}")
+    plt.legend()
+
+
+def get_list_of_projects_to_run():
+    return [
+        "first_experiment"
+    ]
+
+
+for exp_type in get_list_of_projects_to_run():
+    base_path = f"raw_data/{exp_type}/"
+    print(base_path)
+    plot_current_with_errorbars(base_path, exp_type)
+plt.show()
