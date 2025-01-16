@@ -65,21 +65,24 @@ def plot_current_with_errorbars(file_path, exp_type_, axes):
     axes[0].set_ylabel('I (mA)')
     axes[0].legend()
     axes[0].grid(True)
-    # axes[0].set_title('Measured Current with Error Bars')
 
-    # Plot predictions on the second subplot
     pred = calculate_fit(
         theta=np.zeros(len(voltages)),
         voltages=np.array(voltages),
         mean_intensity=np.array(averages),
         baseline_intensity=107.88 * 10 ** -3
     )
+    pred_no_inf = np.ma.masked_invalid(pred)
+    ss_res = np.ma.masked_invalid((pred_no_inf - 96.4) ** 2).sum()
+    ss_tot = np.ma.masked_invalid((np.array(pred_no_inf) - np.ma.masked_invalid(pred_no_inf).mean()) ** 2).sum()
+    r_squared = 1 - (ss_res / ss_tot)
+
     axes[1].errorbar(
         x=voltages,
         y=pred,
         xerr=1*10**-2,
         yerr=2 * 2 * np.pi / 360 / (np.array(voltages) * NL_R * LENGTH),
-        label=f"avg={np.ma.masked_invalid(pred).sum()/len(np.ma.masked_invalid(pred)):.3f}",
+        label=f"avg={np.ma.masked_invalid(pred).sum()/len(np.ma.masked_invalid(pred)):.3f}, r^2={r_squared}",
         fmt='o',
         markersize=6,
         linewidth=2,
@@ -95,7 +98,7 @@ def plot_current_with_errorbars(file_path, exp_type_, axes):
 
 
 def calculate_fit(theta, voltages, mean_intensity, baseline_intensity):
-    delta_theta = (np.pi/2-theta / 360 * 2 * np.pi)
+    delta_theta = (np.pi/2-(1.015 + theta) / 360 * 2 * np.pi)
     arccos_val = np.arccos((mean_intensity / baseline_intensity) ** 0.5)
     verdet_equation = abs(delta_theta - arccos_val) / (voltages * NL_R * LENGTH)
     return verdet_equation

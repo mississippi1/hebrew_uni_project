@@ -10,7 +10,7 @@ LENGTH = 23.5 * 10 ** -3
 
 
 def calculate_fit(theta, voltage, mean_intensity, baseline_intensity):
-    delta_theta = theta * 2 * np.pi / 360
+    delta_theta = (-2 + theta) * 2 * np.pi / 360
     arccos_val = np.arccos((mean_intensity / baseline_intensity) ** 0.5)
     verdet_equation = abs(delta_theta - arccos_val) / (voltage * NL_R * LENGTH)
     return verdet_equation
