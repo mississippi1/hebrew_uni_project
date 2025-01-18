@@ -50,7 +50,6 @@ def process_images(image_indices_input, image_dir):
     plt.figure(figsize=(10, 6))
     plt.scatter(voltages, black_pixel_counts, c="blue", alpha=0.7, s=5)
     plt.plot(voltages, black_pixel_counts, c="purple", alpha=0.6)
-    frequency_hz =
     x_error = [0.5 * frequency_hz] * len(voltages)  # Error in x-axis (half the frequency)
 
     plt.errorbar(voltages, black_pixel_counts, xerr=x_error, fmt='o', label=f'Frequency {frequency_hz} Hz',

@@ -59,7 +59,7 @@ def plot_current_with_errorbars(file_path, exp_type_, axes):
     error_bars = modify_errorbars(angles=voltages, averages=averages)
 
     # Plot on the first subplot
-    axes[0].errorbar(voltages, averages, yerr=error_bars, markersize=2,
+    axes[0].errorbar(voltages, averages, yerr=np.array(averages)*0.077, markersize=2,
                      fmt='o')
     axes[0].set_xlabel('Voltage (V)')
     axes[0].set_ylabel('I (mA)')
