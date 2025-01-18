@@ -58,12 +58,8 @@ def plot_current_with_errorbars(exp_type):
     # Compute linear fit
     coefficients = np.polyfit(x, y, 1)  # Linear fit (degree=1)
     linear_fit = np.poly1d(coefficients)  # Generate linear fit function
-    y_pred = linear_fit(x)  # Predicted y values
-    ss_res = np.sum((y - y_pred) ** 2)  # Residual sum of squares
-    ss_tot = np.sum((y - np.mean(y)) ** 2)  # Total sum of squares
-    r_squared = 1 - (ss_res / ss_tot)  # R-squared formula
+    linear_fit = np.poly1d(coefficients)  # Generate linear fit function
 
-    fit_equation = f"y = {coefficients[0]:.3e}x + {coefficients[1]:.3e}, R^2  = {r_squared:.3f}"
     print(fit_equation)
     plt.plot(x, y_pred, color='red', linestyle='--', label=fit_equation)
     plt.legend()
