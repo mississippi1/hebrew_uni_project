@@ -3,7 +3,7 @@ import pandas as pd
 from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
-
+import matplotlib as mpl
 
 ALPHA = "\u03B1"
 IMAGE_INDICES = list(range(1, 101))
@@ -11,6 +11,9 @@ IMAGE_INDICES = list(range(1, 101))
 # VOLTAGE_MAP = pd.read_excel("/Users/tomerpeker/Downloads/הצמדה בין שם תמונה למתח.xlsx")
 
 VOLTAGE_MAP = pd.read_excel('/Users/tomerpeker/Downloads/coil_voltage.xlsx')
+plt.rcParams['font.size'] = 22  # Set default size
+plt.rcParams['font.size'] = 22  # Set default size
+mpl.rcParams['lines.markersize'] = 10
 
 
 def assign_images_to_voltages(image_indices):
@@ -26,8 +29,8 @@ def count_black_pixels(image_path):
         with Image.open(image_path) as img:
             grayscale = img.convert("L")
             # grayscale.save("grayscale_"+image_path+".jpg")
-            whites = np.sum(np.array(grayscale) < 80)
-            blacks = (np.sum(np.array(grayscale) > 80))
+            whites = np.sum(np.array(grayscale) > 80)
+            blacks = (np.sum(np.array(grayscale) < 80))
             ratio = (whites - blacks) / (blacks + whites)
             black_pixel_count = ratio
         return black_pixel_count
@@ -50,10 +53,11 @@ def process_images(image_indices_input, image_dir):
     plt.figure(figsize=(10, 6))
     plt.scatter(voltages, black_pixel_counts, c="blue", alpha=0.7, s=5)
     plt.plot(voltages, black_pixel_counts, c="purple", alpha=0.6)
+    frequency_hz = 1
     x_error = [0.5 * frequency_hz] * len(voltages)  # Error in x-axis (half the frequency)
 
     plt.errorbar(voltages, black_pixel_counts, xerr=x_error, fmt='o', label=f'Frequency {frequency_hz} Hz',
-                 markersize=2, linewidth=1, alpha=0.5, color="purple")
+                 markersize=5, linewidth=1, alpha=0.5, color="purple")
     plt.title("Hysteresis Loop, from Domains - DC")
     plt.xlabel(f"Voltage {ALPHA} H (V)")
     plt.ylabel(f"M - Ratio between Dark and Light {ALPHA} Magnetization")
@@ -64,7 +68,7 @@ def process_images(image_indices_input, image_dir):
     plt.show()
 
 
-image_dir_const = "/lab_b_1/week_5/coil"
+image_dir_const = "/Users/tomerpeker/hebrew_uni_project/lab_b_1/week_5/coil/"
 
 # Run the script
 process_images(IMAGE_INDICES, image_dir_const)

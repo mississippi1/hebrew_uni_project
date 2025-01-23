@@ -10,6 +10,7 @@ FPS = 5
 MAX_VOLTAGE = 5
 MIN_VOLTAGE = -5
 BASE_PATH = "/users/tomerpeker/hebrew_uni_project/lab_b_1/week4/extracted_videos_frames/"
+plt.rcParams['font.size'] = 22  # Set default size
 
 
 def count_pixels(image_path):

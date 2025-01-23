@@ -7,10 +7,14 @@ import numpy as np
 
 ALPHA = "\u03B1"
 IMAGE_INDICES = list(range(1, 101))
+import matplotlib as mpl
 
+# Set default marker size
+mpl.rcParams['lines.markersize'] = 10
 # VOLTAGE_MAP = pd.read_excel("/Users/tomerpeker/Downloads/הצמדה בין שם תמונה למתח.xlsx")
 
 VOLTAGE_MAP = pd.read_excel('/Users/tomerpeker/Downloads/coil_voltage.xlsx')
+plt.rcParams['font.size'] = 22  # Set default size
 
 
 def assign_images_to_voltages(image_indices):
@@ -49,6 +53,11 @@ def process_images(image_indices_input, image_dir):
     plt.figure(figsize=(10, 6))
     plt.scatter(voltages, black_pixel_counts, c="blue", alpha=0.7, s=5)
     plt.plot(voltages, black_pixel_counts, c="purple", alpha=0.6)
+    frequency_hz = 1
+    x_error = [0.5 * frequency_hz] * len(voltages)  # Error in x-axis (half the frequency)
+
+    plt.errorbar(voltages, black_pixel_counts, xerr=x_error, fmt='o', label=f'Frequency {frequency_hz} Hz',
+                 markersize=5, linewidth=1, alpha=0.5, color="purple")
     plt.title("Hysteresis Loop, from Domains - AC & DC")
     plt.xlabel(f"Voltage {ALPHA} H (V)")
     plt.ylabel(f"M - Ratio between Dark and Light {ALPHA} Magnetization")
@@ -59,7 +68,7 @@ def process_images(image_indices_input, image_dir):
     plt.show()
 
 
-image_dir_const = "/lab_b_1/week_5/hysteresis_loop_ac_dc"
+image_dir_const = "/Users/tomerpeker/hebrew_uni_project/lab_b_1/week_5/hysteresis_loop_ac_dc"
 
 # Run the script
 process_images(IMAGE_INDICES, image_dir_const)

@@ -11,6 +11,7 @@ IMAGE_INDICES = list(range(219, 240)) + list(range(241, 252)) + list(range(405, 
 # VOLTAGE_MAP = pd.read_excel("/Users/tomerpeker/Downloads/הצמדה בין שם תמונה למתח.xlsx")
 
 VOLTAGE_MAP = pd.read_excel('/Users/tomerpeker/Downloads/הצמדה בין שם תמונה למתח_1.xlsx')
+plt.rcParams['font.size'] = 19  # Set default size
 
 
 def assign_images_to_voltages(image_indices):

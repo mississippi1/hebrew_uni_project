@@ -10,6 +10,7 @@ FPS = 5
 MAX_VOLTAGE = 5
 MIN_VOLTAGE = -5
 BASE_PATH = "/users/tomerpeker/hebrew_uni_project/lab_b_1/week4/extracted_videos_frames/"
+plt.rcParams['font.size'] = 22  # Set default size
 
 
 def count_pixels(image_path):
@@ -78,8 +79,10 @@ def main(base_path):
 
             # Plot Hysteresis with Error Bars
             plt.figure()
+            plt.rcParams['font.size'] = 22  # Set default size
+
             plt.errorbar(voltages, dark_to_light_ratios, yerr=std_errors, fmt='o-', label=f'Frequency {frequency_hz} Hz',
-                         markersize=2, linewidth=0.5, alpha=0.5, capsize=2)
+                         markersize=20, linewidth=0.5, alpha=0.5, capsize=2)
             plt.xlabel("Voltage (V)")
             plt.ylabel(f"Ratio of (Black - White) Pixels {ALPHA} Magnetization")
             plt.legend()

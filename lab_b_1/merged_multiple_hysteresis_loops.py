@@ -14,6 +14,7 @@ MIN_VOLTAGE = -5
 BASE_PATH = "/users/tomerpeker/hebrew_uni_project/lab_b_1/week4/extracted_videos_frames"
 color_map = {0.1: "blue", 0.2: "green", 0.4: "red"}
 
+plt.rcParams['font.size'] = 22  # Set default size
 
 def count_pixels(image_path):
     img = Image.open(image_path).convert('L')  # Convert to grayscale
@@ -69,9 +70,9 @@ def main():
     folders = sorted(folders)  # Sort folders for consistent subplot arrangement
 
     frequencies_to_plot = [0.1, 0.2, 0.4]
-    figure, axes = plt.subplots(2, 2, figsize=(12, 10))
-    axes = axes.flatten()
-
+    # figure, axes = plt.subplots(2, 2, figsize=(12, 10))
+    # axes = axes.flatten()
+    axes = plt.figure()
     all_extrema = []  # Store extrema for the 4th plot
 
     for i, folder in enumerate(folders):
@@ -106,25 +107,26 @@ def main():
         area, _, _ = calculate_hysteresis_area(voltage=voltages, magnetization=dark_to_light_ratios)
 
         # Calculate errors
-        x_error = [4*frequency_hz] * len(voltages)  # Error in x-axis (half the frequency)
+        x_error = [2*frequency_hz] * len(voltages)  # Error in x-axis (half the frequency)
 
         # Plot error bars instead of a simple line plot
-        ax = axes[frequencies_to_plot.index(frequency_hz)]
-        ax.errorbar(voltages, dark_to_light_ratios, xerr=x_error, fmt='o',
-                    markersize=2, linewidth=1, alpha=0.5, color=color_map[frequency_hz])
-        ax.plot(voltages, dark_to_light_ratios, 'o-', markersize=2, linewidth=1,
+        # ax = axes[frequencies_to_plot.index(frequency_hz)]
+        plt.errorbar(voltages, dark_to_light_ratios, xerr=x_error, fmt='o',
+                    markersize=3, linewidth=1, alpha=0.5, color=color_map[frequency_hz])
+        plt.plot(voltages, dark_to_light_ratios, 'o-', markersize=5, linewidth=4,
                 alpha=0.5,
                 color=color_map[frequency_hz])
 
         # Add labels and titles
-        ax.set_xlabel("Voltage (V)")
-        ax.set_ylabel(f"M - Ratio of (Black - White) Pixels {ALPHA} Magnetization")
-        ax.legend()
-        ax.axhline(0, color='black', linewidth=0.8)  # Horizontal line at y=0
-        ax.axvline(0, color='black', linewidth=0.8)  # Vertical line at x=0
-        ax.grid(True)
-        ax.set_title(f"Hysteresis Loop - {frequency_hz} Hz")
-
+        plt.xlabel("Voltage (V)")
+        # ax.set_ylabel(f"M - Ratio of (Black - White) Pixels {ALPHA} Magnetization")
+        plt.legend()
+        plt.axhline(0, color='black', linewidth=0.8)  # Horizontal line at y=0
+        plt.axvline(0, color='black', linewidth=0.8)  # Vertical line at x=0
+        plt.grid(True)
+        plt.title(f"Hysteresis Loop - {frequency_hz} Hz")
+        plt.show()
+        # plt.close()
     plt.tight_layout()
     plt.savefig("results/Hysteresis_Loop_Subplots.jpg", dpi=300)
     plt.show()
