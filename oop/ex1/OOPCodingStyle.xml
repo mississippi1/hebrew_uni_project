@@ -1,0 +1,10 @@
+<code_scheme name="Default" version="173">
+  <option name="AUTODETECT_INDENTS" value="false" />
+  <codeStyleSettings language="JAVA">
+    <option name="RIGHT_MARGIN" value="110" />
+    <option name="METHOD_PARAMETERS_WRAP" value="1" />
+    <indentOptions>
+      <option name="USE_TAB_CHARACTER" value="true" />
+    </indentOptions>
+  </codeStyleSettings>
+</code_scheme>
