@@ -2,3 +2,15 @@
 week3/raw_data/
 week2/raw_data/
 lab_b_2/week2/raw_data/
+
+# Unrelated to oop exercise
+TTS/
+TTS.app/
+lab_b_1/
+lab_b_2/
+relaxsation_method_numeric_execrsise/
+.idea/
+downlaod_mp3_youtube.py
+main.py
+*.png
+*.class
