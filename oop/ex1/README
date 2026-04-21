@@ -1,0 +1,12 @@
+Tomer.Peker@mail.huji.ac.il
+206777864
+
+Strategy for the automated players - for the Naive and Whatever player, exactly as detailed in the PDF.
+    Naive is iterating though the rows and columns, and the Whatever is just guessing. The Smart player tries to block the
+    naive first and uses his position to fill in a row. If that failed, he will resort to Naive strategy.
+
+The advantage of an interface for players in program design is standardizing the "what" of players, without
+    detailing the "how". Using these principle, it is straightforward to add different players at any time, and
+    makes the ability to work with other devs easier. This is the basis of Abstraction and Encapsulation.
+
+I added a private enum, the enum means which wintype has occured - X, O or non yet

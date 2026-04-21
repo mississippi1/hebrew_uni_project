@@ -2,7 +2,12 @@
  * The options of roles in Tik Tak Toe
  */
 public enum Mark {
-    BLANK, X, O;
+    /** Represents an empty cell */
+    BLANK,
+    /** Represents the X player */
+    X,
+    /** represents the O player mark */
+    O;
 
 	/**
 	 * the string formatting of marks
