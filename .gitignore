@@ -13,3 +13,9 @@ downlaod_mp3_youtube.py
 main.py
 *.png
 *.class
+
+# IntelliJ
+.idea/
+*.iml
+out/
+oop/ex1/out/
