@@ -59,13 +59,19 @@ public class SmartPlayer implements Player {
         } while (!success);
     }
 
-	private int[] moveWithLongestMarks(Board board, Mark targetMark) {
+	/**
+	 * Retuen move with longest streak for a mark
+	 * @param board the borad which is being played
+	 * @param mark the mark to check
+	 * @return position of best move or null if not exists
+	 */
+	private int[] moveWithLongestMarks(Board board, Mark mark) {
 		int bestStreak = 0;
 		int[] bestMove = null;
 		for (int row = 0; row < board.getSize(); row++) {
 			for (int col = 0; col < board.getSize(); col++) {
 				if (board.getMark(row, col) != Mark.BLANK) continue;
-				int streak = countMarksInARowOrDiag(board, row, col, targetMark);
+				int streak = countMarksInARowOrDiag(board, row, col, mark);
 				if (streak > bestStreak) {
 					bestStreak = streak;
 					bestMove = new int[]{row, col};
@@ -74,6 +80,16 @@ public class SmartPlayer implements Player {
 		}
 		return bestMove;
 	}
+
+	/**
+	 * Counts the streak of marks in each direction
+	 * @param board the borad which is being played
+	 * @param mark the mark to check
+	 * @param row the row to check
+	 * @param col the column to check
+	 * @param mark the mark to check
+	 * @return the longest steak exists
+	 */
 	private int countMarksInARowOrDiag(Board board, int row, int col, Mark mark) {
 		int max = 0;
 		int[][] combinations = {{0,1}, {0,1}, {1,1}, {1,0}, {1,-1}};
@@ -88,6 +104,17 @@ public class SmartPlayer implements Player {
 		return max;
 	}
 
+	/**
+	 * Counts marks in a given direction
+	 * @param startRow the row to start
+	 * @param startCol the column to start
+	 * @param movementInRow the way to move the scan in the rows
+	 * @param movmentInCol the way to move the scan in the columns
+	 * @param steps the number of steps to take
+	 * @param mark the mark to check
+	 * @param board the board to check
+	 * @return the nu,ber of marks in the streak
+	 */
 	private int countMarks(int startRow, int startCol, int movementInRow,
 						   int movmentInCol, int steps, Mark mark, Board board) {
 		int maxCount = 0;
