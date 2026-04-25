@@ -4,7 +4,8 @@ t20677786
 Strategy for the automated players - for the Naive and Whatever player,
     exactly as detailed in the PDF.
     Naive is iterating though the rows and columns, and the Whatever is just guessing.
-    The Smart player tries to block the naive first and uses his position
+    The Smart player checks for the longest streak. If exists it will exploit it.
+    If not exist, it tries to block the naive first and uses his position
     to fill in a row. If that failed, he will resort to Naive strategy.
 
 The advantage of an interface for players in program design is standardizing the
