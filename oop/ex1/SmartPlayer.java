@@ -79,7 +79,8 @@ public class SmartPlayer implements Player {
 		int[][] combinations = {{0,1}, {0,1}, {1,1}, {1,0}, {1,-1}};
 		for(int[] option : combinations){
 			int countStrekInTwoWay = countMarks(row, col, option[0], option[1], board.getSize(), mark, board)
-					+ countMarks(row, col, -1*option[0], -1*option[1], board.getSize(), mark, board);
+					+ countMarks(row, col, -1*option[0],
+					-1*option[1], board.getSize(), mark, board);
 			if(countStrekInTwoWay > max){
 				max = countStrekInTwoWay;
 			}
@@ -87,7 +88,8 @@ public class SmartPlayer implements Player {
 		return max;
 	}
 
-	private int countMarks(int startRow, int startCol, int movementInRow, int movmentInCol, int steps, Mark mark, Board board) {
+	private int countMarks(int startRow, int startCol, int movementInRow,
+						   int movmentInCol, int steps, Mark mark, Board board) {
 		int maxCount = 0;
 		for (int index = 1; index < steps; index++) {
 			Mark currentMark = board.getMark(startRow + movementInRow * index,
