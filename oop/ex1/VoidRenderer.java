@@ -1,14 +1,14 @@
 /**
- * The dummy renderer which doesnt display
+ * A renderer that produces no output.
  */
 public class VoidRenderer implements Renderer {
 
 	/**
-	 * The dummy renderer which doesnt display
-	 * @param board the board to render
+	 * Does nothing.
+	 * @param board the board to render.
 	 */
 	@Override
-    public void renderBoard(Board board) {
+	public void renderBoard(Board board) {
         return;
-    }
+	}
 }

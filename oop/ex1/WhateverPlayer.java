@@ -20,10 +20,10 @@ public class WhateverPlayer implements Player {
 	 */
     @Override
     public void playTurn(Board board, Mark mark) {
-        Random r = new Random();
+        Random random = new Random();
         boolean success;
         do {
-            success = board.putMark(mark, r.nextInt(board.getSize()), r.nextInt(board.getSize()));
+            success = board.putMark(mark, random.nextInt(board.getSize()), random.nextInt(board.getSize()));
         } while (!success);
     }
 }
