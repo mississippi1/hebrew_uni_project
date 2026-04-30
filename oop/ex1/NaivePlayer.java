@@ -15,18 +15,18 @@ public class NaivePlayer implements Player {
 	 * @param board board class
 	 * @param mark the mark to put
 	 */
-    @Override
-    public void playTurn(Board board, Mark mark) {
-        int row = 0;
-        int col = 0;
-        boolean success;
-        do {
-            success = board.putMark(mark, row, col);
-            col++;
-            if(col == board.getSize()) {
-                row++;
-                col = 0;
-            }
-        } while (!success);
-    }
+	@Override
+	public void playTurn(Board board, Mark mark) {
+		int row = 0;
+		int col = 0;
+		boolean success;
+		do {
+			success = board.putMark(mark, row, col);
+			col++;
+			if (col == board.getSize()) {
+				row++;
+				col = 0;
+			}
+		} while (!success);
+	}
 }
