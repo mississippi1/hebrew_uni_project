@@ -5,9 +5,9 @@ public class RendererFactory {
 	/**
 	 * Constructor for renderer factory
 	 */
-	RendererFactory() {
-
-	}
+	RendererFactory() {}
+	private static final String TYPE_VOID = "void";
+	private static final String TYPE_CONSOLE = "console";
 
 	/**
 	 * Builds a render by type and size
@@ -17,8 +17,8 @@ public class RendererFactory {
 	 */
 	public Renderer buildRenderer(String type, int size) {
 		return switch (type) {
-			case "void" -> new VoidRenderer();
-			case "console" -> new ConsoleRenderer(size);
+			case TYPE_VOID -> new VoidRenderer();
+			case TYPE_CONSOLE -> new ConsoleRenderer(size);
 			default -> null;
 		};
 	}
