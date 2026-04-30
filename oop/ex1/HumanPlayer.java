@@ -5,38 +5,42 @@ public class HumanPlayer implements Player {
 	/**
 	 * Constructor
 	 */
-    HumanPlayer (){
+    HumanPlayer (){}
 
-    }
+	private static final int
+			BASE_OF_INPUT_STRING_TO_GET_POS_OF_X_AND_Y = 10;
+	private static final String INPUT_FROM_PLAYER_STRING = "Player %s, type coordinates: ";
+	private static final String INVALID_POSITION_STRING =
+			"Invalid mark position. Please choose a valid position: ";
+	private static final String UNAVAILABLE_POSITION_STRING =
+			"Mark position is already occupied. Please choose a valid position: ";
 
 	/**
 	 * Playing turn for human player
 	 * @param board board class
 	 * @param mark the mark to put
 	 */
-    @Override
+	@Override
 	public void playTurn(Board board, Mark mark) {
-        String stringToPrint = String.format("Player %s, type coordinates: ", mark);
-        printToScreen(stringToPrint);
-        boolean success = false;
-        do {
-            int input = KeyboardInput.readInt();
-
-			int inputRow = input / 10;
-			int inputCol = input % 10;
-			if (inputRow< 0 || board.getSize() <= inputRow || inputCol< 0 || board.getSize() <= inputCol) {
-                printToScreen("Invalid mark position. Please choose a valid position: ");
+		printToScreen(String.format(INPUT_FROM_PLAYER_STRING, mark));
+		boolean success = false;
+		do {
+			int input = KeyboardInput.readInt();
+			int inputRow = input / BASE_OF_INPUT_STRING_TO_GET_POS_OF_X_AND_Y;
+			int inputCol = input % BASE_OF_INPUT_STRING_TO_GET_POS_OF_X_AND_Y;
+			if (inputRow < 0 || inputRow >= board.getSize()
+					|| inputCol < 0 || inputCol >= board.getSize()) {
+				printToScreen(INVALID_POSITION_STRING);
 				continue;
-            }
-            success = board.putMark(mark, inputRow, inputCol);
-            if (!success) {
-                printToScreen("Mark position is already occupied. Please choose a valid position: ");
-            }
-        } while (!success);
+			}
+			success = board.putMark(mark, inputRow, inputCol);
+			if (!success) {
+				printToScreen(UNAVAILABLE_POSITION_STRING);
+			}
+		} while (!success);
+	}
 
-    }
-
-    private void printToScreen(String s) {
-        System.out.print(s);
-    }
+	private void printToScreen(String message) {
+		System.out.print(message);
+	}
 }
