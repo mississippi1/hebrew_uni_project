@@ -5,9 +5,11 @@ public class PlayerFactory {
 	/**
 	 * constructs the plauer factory
 	 */
-	PlayerFactory() {
-
-	}
+	PlayerFactory() {}
+	private static final String TYPE_HUMAN = "human";
+	private static final String TYPE_WHATEVER = "whatever";
+	private static final String TYPE_NAIVE = "naive";
+	private static final String TYPE_SMART = "smart";
 
 	/**
 	 * Initializing the correct player by type
@@ -16,10 +18,10 @@ public class PlayerFactory {
 	 */
 	public Player buildPlayer(String type) {
 		return switch (type) {
-			case "human" -> new HumanPlayer();
-			case "whatever" -> new WhateverPlayer();
-			case "naive" -> new NaivePlayer();
-			case "smart" -> new SmartPlayer();
+			case TYPE_HUMAN -> new HumanPlayer();
+			case TYPE_WHATEVER -> new WhateverPlayer();
+			case TYPE_NAIVE -> new NaivePlayer();
+			case TYPE_SMART -> new SmartPlayer();
 			default -> null;
 		};
 	}
