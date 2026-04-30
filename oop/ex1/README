@@ -6,7 +6,9 @@ Strategy for the automated players - for the Naive and Whatever player,
     Naive is iterating though the rows and columns, and the Whatever is just guessing.
     The Smart player checks for the longest streak. If exists it will exploit it.
     If not exist, it tries to block the naive first and uses his position
-    to fill in a row. If that failed, he will resort to Naive strategy.
+    to fill in a column. If that failed, he will resort to Naive strategy.
+    The smart player checks from the last to first columns to exploit a sequence as
+    much as possible.
 
 The advantage of an interface for players in program design is standardizing the
     "what" of players, without detailing the "how". Using these principle, it

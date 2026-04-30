@@ -7,13 +7,6 @@ public class Board {
 	private int size = DEFAULT_SIZE;
     private Mark[][] board;
 
-	private boolean isCoordsOK(int  inputRow, int inputCol) {
-		if(inputRow < 0 || inputRow >= size){
-			return false;
-		}
-		return inputCol >= 0 && inputCol < size;
-	}
-
 	private boolean isFree(int row, int col) {
 		return board[row][col] == null || board[row][col] == Mark.BLANK ;
 	}
@@ -80,5 +73,12 @@ public class Board {
         }
         return Mark.BLANK;
     }
+
+	private boolean isCoordsOK(int  inputRow, int inputCol) {
+		if(inputRow < 0 || inputRow >= size){
+			return false;
+		}
+		return inputCol >= 0 && inputCol < size;
+	}
 
 }

@@ -10,7 +10,7 @@ public class SmartPlayer implements Player {
 			{1, 0},
 			{0, 1},
 			{1, 1},
-			{1, -1}
+			{1, -1},
 	};
 
 	/**
@@ -32,7 +32,7 @@ public class SmartPlayer implements Player {
 			}
 		}
 		for (int row = 0; row < board.getSize(); row++) {
-			success = board.putMark(mark, row, 1);
+			success = board.putMark(mark, row, board.getSize()-1);
 			if (success) {
 				return;
 			}
@@ -72,8 +72,8 @@ public class SmartPlayer implements Player {
 	private int[] moveWithLongestMarks(Board board, Mark mark) {
 		int bestStreak = 0;
 		int[] bestMove = null;
-		for (int row = 0; row < board.getSize(); row++) {
-			for (int col = 0; col < board.getSize(); col++) {
+		for (int col = board.getSize()-1; col>=0; col--) {
+			for (int row = 0; row < board.getSize(); row++) {
 				if (board.getMark(row, col) != Mark.BLANK) {
 					continue;
 				}
