@@ -5,28 +5,33 @@ import java.util.Random;
  */
 public class SmartPlayer implements Player {
 
-	/**
-	 * constructs the smart plauer factory
-	 */
-    SmartPlayer(){
-    }
+	private static final int[][] COMBINATIONS = {
+			{0, 1},
+			{1, 0},
+			{0, 1},
+			{1, 1},
+			{1, -1}
+	};
 
 	/**
 	 * Plays turn for smart player.
 	 * @param board board class
 	 * @param mark the mark to put
 	 */
-    @Override
-    public void playTurn(Board board, Mark mark) {
+	@Override
+	public void playTurn(Board board, Mark mark) {
 		boolean success;
-		int[] moveWithLongestStreakIfExists = moveWithLongestMarks(board, mark);
+		int[] moveWithLongestStreakIfExists =
+				moveWithLongestMarks(board, mark);
 		if(moveWithLongestStreakIfExists !=null){
-			success = board.putMark(mark, moveWithLongestStreakIfExists[0], moveWithLongestStreakIfExists[1]);
+			success = board.putMark(mark,
+					moveWithLongestStreakIfExists[0],
+					moveWithLongestStreakIfExists[1]);
 			if (success) {
 				return;
 			}
 		}
-		for(int row = 0; row < board.getSize(); row++) {
+		for (int row = 0; row < board.getSize(); row++) {
 			success = board.putMark(mark, row, 1);
 			if (success) {
 				return;
@@ -44,20 +49,19 @@ public class SmartPlayer implements Player {
 				return;
 			}
 		}
-
-		for(int row = 1; row < board.getSize(); row++) {
+		for (int row = 1; row < board.getSize(); row++) {
 			success = board.putMark(mark, row, 0);
 			if (success) {
 				return;
 			}
 		}
 
-        Random r = new Random();
-
-        do {
-            success = board.putMark(mark, r.nextInt(board.getSize()), r.nextInt(board.getSize()));
-        } while (!success);
-    }
+		Random random = new Random();
+		do {
+			success = board.putMark(mark, random.nextInt(board.getSize()),
+					random.nextInt(board.getSize()));
+		} while (!success);
+	}
 
 	/**
 	 * Retuen move with longest streak for a mark
@@ -70,7 +74,9 @@ public class SmartPlayer implements Player {
 		int[] bestMove = null;
 		for (int row = 0; row < board.getSize(); row++) {
 			for (int col = 0; col < board.getSize(); col++) {
-				if (board.getMark(row, col) != Mark.BLANK) continue;
+				if (board.getMark(row, col) != Mark.BLANK) {
+					continue;
+				}
 				int streak = countMarksInARowOrDiag(board, row, col, mark);
 				if (streak > bestStreak) {
 					bestStreak = streak;
@@ -92,13 +98,13 @@ public class SmartPlayer implements Player {
 	 */
 	private int countMarksInARowOrDiag(Board board, int row, int col, Mark mark) {
 		int max = 0;
-		int[][] combinations = {{0,1}, {0,1}, {1,1}, {1,0}, {1,-1}};
-		for(int[] option : combinations){
-			int countStrekInTwoWay = countMarks(row, col, option[0], option[1], board.getSize(), mark, board)
-					+ countMarks(row, col, -1*option[0],
-					-1*option[1], board.getSize(), mark, board);
-			if(countStrekInTwoWay > max){
-				max = countStrekInTwoWay;
+		for (int[] direction : COMBINATIONS) {
+			int total = countMarks(row, col, direction[0], direction[1],
+							board.getSize(), mark, board)
+					+ countMarks(row, col, -direction[0], -direction[1],
+							board.getSize(), mark, board);
+			if (total > max) {
+				max = total;
 			}
 		}
 		return max;
