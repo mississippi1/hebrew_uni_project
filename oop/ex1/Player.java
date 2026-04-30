@@ -7,5 +7,5 @@ public interface Player {
 	 * @param board board class
 	 * @param mark the mark to put
 	 */
-    void playTurn(Board board, Mark mark);
+	void playTurn(Board board, Mark mark);
 }
