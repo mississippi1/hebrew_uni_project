@@ -1,5 +1,6 @@
 /**
  * The game class which is used to play a single game
+ * @author Tomer Peker
  */
 public class Game {
 

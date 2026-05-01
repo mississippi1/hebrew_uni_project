@@ -1,5 +1,6 @@
 /**
  * The human player which is responsible for managing human players and processing their actions
+ * @author Tomer Peker
  */
 public class HumanPlayer implements Player {
 	/**

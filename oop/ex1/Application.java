@@ -1,5 +1,6 @@
 /**
  * Entry point for a smoke-test of the project.
+ * @author Tomer Peker
  */
 public class Application {
 	private static final String GREETING = "Hello World!\n";

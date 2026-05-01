@@ -1,3 +1,6 @@
+/**
+ * @author Tomer Peker
+ */
 public class GameTests {
 
     private static int passed = 0;

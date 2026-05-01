@@ -7,6 +7,7 @@ import java.util.logging.Logger;
  * Renders a given part_2.Board to the console.
  *
  * @author Dan Nirel
+ * @author Tomer Peker
  */
 public class ConsoleRenderer implements Renderer {
     private static final Character FIRST_ROW = '0';

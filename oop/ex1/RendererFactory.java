@@ -1,5 +1,6 @@
 /**
  * The renderer factory which creates the relevent renderer
+ * @author Tomer Peker
  */
 public class RendererFactory {
 	/**

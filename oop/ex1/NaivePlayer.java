@@ -1,5 +1,6 @@
 /**
  * The naive player which uses a predictable strategy
+ * @author Tomer Peker
  */
 public class NaivePlayer implements Player {
 

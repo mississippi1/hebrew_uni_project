@@ -1,5 +1,6 @@
 /**
  * Interface for renderer class
+ * @author Tomer Peker
  */
 public interface Renderer {
 	/**

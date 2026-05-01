@@ -1,5 +1,6 @@
 /**
  * A renderer that produces no output.
+ * @author Tomer Peker
  */
 public class VoidRenderer implements Renderer {
 

@@ -1,5 +1,6 @@
 /**
 * A player interface for the Tic Tak Toe game
+* @author Tomer Peker
 * */
 public interface Player {
 	/**

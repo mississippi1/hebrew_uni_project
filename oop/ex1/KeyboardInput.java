@@ -1,6 +1,9 @@
 
 import java.util.Scanner;
 
+/**
+ * @author Tomer Peker
+ */
 class KeyboardInput
 {
     private static KeyboardInput keyboardInputObject = null;

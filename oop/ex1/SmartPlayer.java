@@ -2,6 +2,7 @@ import java.util.Random;
 
 /**
  * the smart player class which should win 80%
+ * @author Tomer Peker
  */
 public class SmartPlayer implements Player {
 

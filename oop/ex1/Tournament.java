@@ -1,5 +1,6 @@
 /**
  * The tournament class which is responsible for running a multi game tournament and processing user input
+ * @author Tomer Peker
  */
 public class Tournament {
 

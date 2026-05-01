@@ -2,6 +2,7 @@ import java.util.Random;
 
 /**
  * The whatever player which uses a random strategy
+ * @author Tomer Peker
  */
 public class WhateverPlayer implements Player {
 

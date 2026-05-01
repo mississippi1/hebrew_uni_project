@@ -1,5 +1,6 @@
 /**
  * The class which is responsible for managing the board of the game
+ * @author Tomer Peker
  */
 public class Board {
 

@@ -1,5 +1,6 @@
 /**
 * The player factory which creates the relevent player
+* @author Tomer Peker
  */
 public class PlayerFactory {
 	/**

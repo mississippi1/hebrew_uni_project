@@ -1,5 +1,6 @@
 /**
  * The options of roles in Tik Tak Toe
+ * @author Tomer Peker
  */
 public enum Mark {
 	/** Represents an empty cell. */
